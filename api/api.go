@@ -3,8 +3,10 @@ package api
 import (
 	"net/http"
 
-	"github.com/da4nik/books/config"
+	"github.com/da4nik/swanager/api/app"
 	"github.com/da4nik/swanager/api/service"
+	"github.com/da4nik/swanager/api/user"
+	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/auth"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +17,9 @@ func init() {
 	router.Use(tokenAuthMiddleware())
 
 	apiGroup := router.Group("/api")
+	app.GetRoutesForRouter(apiGroup)
 	service.GetRoutesForRouter(apiGroup)
+	user.GetRoutesForRouter(apiGroup)
 
 	router.Run(":" + config.Port)
 }
@@ -43,6 +47,5 @@ func tokenAuthMiddleware() gin.HandlerFunc {
 			return
 		}
 		c.AbortWithStatus(http.StatusUnauthorized)
-		c.Next()
 	}
 }
