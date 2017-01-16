@@ -3,13 +3,14 @@ package service
 import (
 	"net/http"
 
+	"github.com/da4nik/swanager/api/common"
 	"github.com/gin-gonic/gin"
 )
 
 // GetRoutesForRouter adds resource routes to api router
 func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
 
-	services := router.Group("/apps/:app_id/services")
+	services := router.Group("/apps/:app_id/services", common.Auth(true))
 	{
 		services.GET("", list)
 		services.POST("", create)

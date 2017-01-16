@@ -3,7 +3,7 @@ package user
 import (
 	"net/http"
 
-	"github.com/da4nik/swanager/core/db"
+	"github.com/da4nik/swanager/core/entities"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +24,7 @@ func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
 }
 
 func show(c *gin.Context) {
-	user, err := db.GetUser("sdfsdfsdfsdf")
+	user, err := entities.GetUser(c.Param("user_id"))
 	if err != nil {
 		c.AbortWithError(http.StatusNotFound, err)
 		return

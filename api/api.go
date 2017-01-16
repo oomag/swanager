@@ -5,21 +5,22 @@ import (
 
 	"github.com/da4nik/swanager/api/app"
 	"github.com/da4nik/swanager/api/service"
+	"github.com/da4nik/swanager/api/session"
 	"github.com/da4nik/swanager/api/user"
 	"github.com/da4nik/swanager/config"
-	"github.com/da4nik/swanager/core/auth"
 	"github.com/gin-gonic/gin"
 )
 
 func init() {
 	router := gin.Default()
+
 	router.Use(corsMiddleware())
-	router.Use(tokenAuthMiddleware())
 
 	apiGroup := router.Group("/api")
 	app.GetRoutesForRouter(apiGroup)
 	service.GetRoutesForRouter(apiGroup)
 	user.GetRoutesForRouter(apiGroup)
+	session.GetRoutesForRouter(apiGroup)
 
 	router.Run(":" + config.Port)
 }
@@ -36,16 +37,5 @@ func corsMiddleware() gin.HandlerFunc {
 		}
 
 		c.Next()
-	}
-}
-
-func tokenAuthMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		token := c.Request.Header.Get("Authorization")
-		if auth.WithToken(token) {
-			c.Next()
-			return
-		}
-		c.AbortWithStatus(http.StatusUnauthorized)
 	}
 }
