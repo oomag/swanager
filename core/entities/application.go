@@ -5,6 +5,7 @@ import (
 
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/db"
+	"github.com/da4nik/swanager/lib"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -55,7 +56,7 @@ func (a *Application) Create() error {
 	defer session.Close()
 	c := getApplicationsCollection(session)
 
-	a.ID = generateUUID()
+	a.ID = lib.GenerateUUID()
 
 	if err := c.Insert(a); err != nil {
 		return fmt.Errorf("Unable to create application: %s", err)

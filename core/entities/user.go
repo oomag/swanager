@@ -6,6 +6,7 @@ import (
 
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/db"
+	"github.com/da4nik/swanager/lib"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -14,9 +15,10 @@ const usersCollectionName = "users"
 
 // User describes service entity
 type User struct {
-	ID     string `bson:"_id,omitempty"`
-	Email  string
-	Tokens []Token
+	ID       string `bson:"_id,omitempty"`
+	Email    string
+	Password string  `json:"-"`
+	Tokens   []Token `json:"-"`
 }
 
 // GetUser returns User object from db
@@ -77,7 +79,8 @@ func (u *User) Create() error {
 	defer session.Close()
 	c := getUsersCollection(session)
 
-	u.ID = generateUUID()
+	u.ID = lib.GenerateUUID()
+	u.Password = lib.CalculateMD5(u.Password)
 
 	if err := c.Insert(u); err != nil {
 		return fmt.Errorf("Unable to create user: %s", err)

@@ -5,6 +5,7 @@ import (
 
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/db"
+	"github.com/da4nik/swanager/lib"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -42,7 +43,7 @@ func (s *Service) Create() error {
 	defer session.Close()
 	c := getServicesCollection(session)
 
-	s.ID = generateUUID()
+	s.ID = lib.GenerateUUID()
 
 	if err := c.Insert(s); err != nil {
 		return fmt.Errorf("Unable to create service: %s", err)
