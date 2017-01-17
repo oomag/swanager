@@ -14,20 +14,21 @@ const applicationsCollectionName = "applications"
 
 // Application describes application entity
 type Application struct {
-	ID     string `bson:"_id,omitempty"`
-	Name   string
-	UserID string `json:"user_id,omitempty"`
+	ID       string    `json:"id" bson:"_id,omitempty"`
+	Name     string    `json:"name"`
+	UserID   string    `json:"-" bson:"user_id"`
+	Services []Service `json:"services" bson:"-"`
 }
 
 // GetApplication return application if it exists
-func GetApplication(id string) (*Application, error) {
+func GetApplication(params map[string]interface{}) (*Application, error) {
 	session := db.GetSession()
 	defer session.Close()
 	c := getApplicationsCollection(session)
 
 	application := Application{}
 
-	if err := c.Find(bson.M{"_id": id}).One(&application); err != nil {
+	if err := c.Find(params).One(&application); err != nil {
 		return nil, fmt.Errorf("GetApplication error: %s", err)
 	}
 
@@ -77,6 +78,16 @@ func (a *Application) GetServices() ([]Service, error) {
 	}
 
 	return services, nil
+}
+
+// LoadServices retrieves services associated with application
+func (a *Application) LoadServices() {
+	services, err := a.GetServices()
+	if err != nil {
+		return
+	}
+
+	a.Services = services
 }
 
 func getApplicationsCollection(session *mgo.Session) *mgo.Collection {
