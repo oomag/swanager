@@ -4,9 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 )
@@ -21,8 +23,11 @@ func ServiceCreate(service *entities.Service) string {
 
 	CreateNetwork(getNetworkName(service))
 
+	mounts, _ := getServiceMounts(service)
+
 	containerSpec := swarm.ContainerSpec{
-		Image: service.Image,
+		Image:  service.Image,
+		Mounts: mounts,
 	}
 
 	updateConfig := swarm.UpdateConfig{
@@ -86,4 +91,34 @@ func ServiceRemove(service *entities.Service) error {
 
 func dockerServiceName(service *entities.Service) string {
 	return fmt.Sprintf("%s-%s-%s", service.Application.Name, service.Name, service.ID)
+}
+
+func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
+	result := make([]mount.Mount, 0)
+	vols, err := ImageVolumes(service.Image)
+	if err != nil {
+		return result, err
+	}
+
+	volumeOptions := mount.VolumeOptions{
+		Labels: map[string]string{
+			"application_id": service.Application.ID,
+			"service_id":     service.ID,
+		},
+	}
+
+	for _, vol := range *vols {
+		result = append(result, mount.Mount{
+			Type:          "bind",
+			Source:        getMountPathPrefix() + vol,
+			Target:        vol,
+			VolumeOptions: &volumeOptions,
+		})
+	}
+
+	return result, nil
+}
+
+func getMountPathPrefix() string {
+	return config.MountPathPrefix
 }
