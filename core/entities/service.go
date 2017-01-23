@@ -14,11 +14,14 @@ const servicesCollectionName = "services"
 
 // Service describes service entity
 type Service struct {
-	ID            string `bson:"_id,omitempty"`
-	Name          string
-	Image         string
-	Replicas      int
-	ApplicationID string `bson:"application_id,omitempty"`
+	ID              string `bson:"_id,omitempty"`
+	Name            string
+	Image           string
+	Replicas        *uint64
+	Parallelism     uint64
+	ApplicationID   string      `bson:"application_id,omitempty"`
+	DockerServiceID string      `bson:"docker_service_id,omitempty"`
+	Application     Application `bson:"-" json:"-"`
 }
 
 // Save saves user entity in db

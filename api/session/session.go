@@ -9,8 +9,9 @@ import (
 )
 
 type loginMessage struct {
-	Email    string
-	Password string
+	Email      string
+	Password   string
+	RememberMe bool `json:"remember_me,omitempty"`
 }
 
 // GetRoutesForRouter adds resource routes to api router
