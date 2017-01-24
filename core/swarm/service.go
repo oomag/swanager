@@ -3,6 +3,7 @@ package swarm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
@@ -12,6 +13,13 @@ import (
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
 )
+
+// ServiceStatusStruct represents service state
+type ServiceStatusStruct struct {
+	Node      string
+	Status    string
+	Timestamp time.Time
+}
 
 // ServiceCreate creates swarm service form Service entity
 func ServiceCreate(service *entities.Service) string {
@@ -87,6 +95,44 @@ func ServiceRemove(service *entities.Service) error {
 
 	_, err = cli.NetworksPrune(context.Background(), filters.Args{})
 	return err
+}
+
+// ServiceInspect return service status
+func ServiceInspect(service *entities.Service) (*swarm.Service, error) {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+	defer cli.Close()
+
+	serviceInspection, raw, err := cli.ServiceInspectWithRaw(context.Background(), dockerServiceName(service))
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("Sdfsdfsdfsdf")
+	fmt.Println(string(raw))
+
+	return &serviceInspection, nil
+}
+
+// ServiceStatus returns service status
+func ServiceStatus(service *entities.Service) ([]ServiceStatusStruct, error) {
+	tasks, err := GetTasks(service)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]ServiceStatusStruct, 0)
+	for _, task := range *tasks {
+		result = append(result, ServiceStatusStruct{
+			Node:      task.NodeID,
+			Status:    string(task.Status.State),
+			Timestamp: task.Status.Timestamp,
+		})
+	}
+
+	return result, nil
 }
 
 func dockerServiceName(service *entities.Service) string {

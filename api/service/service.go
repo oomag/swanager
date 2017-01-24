@@ -4,13 +4,15 @@ import (
 	"net/http"
 
 	"github.com/da4nik/swanager/api/common"
+	"github.com/da4nik/swanager/core/entities"
+	"github.com/da4nik/swanager/core/swarm"
 	"github.com/gin-gonic/gin"
 )
 
 // GetRoutesForRouter adds resource routes to api router
-func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
+func GetRoutesForRouter(router *gin.RouterGroup) {
 
-	services := router.Group("/apps/:app_id/services", common.Auth(true))
+	services := router.Group("/services", common.Auth(true))
 	{
 		services.GET("", list)
 		services.POST("", create)
@@ -21,7 +23,16 @@ func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
 		service.GET("", show)
 	}
 
-	return services
+	appServices := router.Group("/apps/:app_id/services", common.Auth(true))
+	{
+		appServices.GET("", list)
+		appServices.POST("", create)
+	}
+
+	appService := appServices.Group("/:service_id")
+	{
+		appService.GET("", show)
+	}
 }
 
 func list(c *gin.Context) {
@@ -35,5 +46,21 @@ func create(c *gin.Context) {
 }
 
 func show(c *gin.Context) {
+	currentUser := common.MustGetCurrentUser(c)
+
+	service, err := entities.GetService(gin.H{"user_id": currentUser.ID})
+	if err != nil {
+		c.AbortWithError(http.StatusNotFound, err)
+		return
+	}
+
+	serviceStatus, err := swarm.ServiceStatus(service)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"service": service, "status_error": err})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus})
+
 	c.AbortWithStatus(http.StatusOK)
 }

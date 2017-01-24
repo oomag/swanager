@@ -19,9 +19,24 @@ type Service struct {
 	Image           string
 	Replicas        *uint64
 	Parallelism     uint64
-	ApplicationID   string      `bson:"application_id,omitempty"`
-	DockerServiceID string      `bson:"docker_service_id,omitempty"`
+	ApplicationID   string      `bson:"application_id,omitempty" json:"application_id"`
+	DockerServiceID string      `bson:"docker_service_id,omitempty" json:"-"`
 	Application     Application `bson:"-" json:"-"`
+}
+
+// GetService return service if it exists
+func GetService(params map[string]interface{}) (*Service, error) {
+	session := db.GetSession()
+	defer session.Close()
+	c := getServicesCollection(session)
+
+	service := Service{}
+
+	if err := c.Find(params).One(&service); err != nil {
+		return nil, fmt.Errorf("GetService error: %s", err)
+	}
+
+	return &service, nil
 }
 
 // Save saves user entity in db
