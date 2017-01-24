@@ -4,5 +4,5 @@ Base api path is `/api/`
 ## Endpoints
 
 Path | Description
-_____|____________
-[/session](http://google.com) | Login/Logout
+----- | ------
+[/session](https://github.com/da4nik/swanager/blob/master/docs/session.md) | Login/Logout
