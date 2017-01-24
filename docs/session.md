@@ -1,6 +1,6 @@
 ## Authorization / Authentication
 ---
-Authenticaton is processd via `Authorization` header, which should contain token. Authorization token is got from **POST** `/session` call.
+Authenticaton is processed via `Authorization` header, which should contain session token. Authorization token is got from **POST** `/session` call.
 
 
 **Authorize**
@@ -24,7 +24,7 @@ Authorizes user with email and password and returns session token
     }
   ```
 * **Success Response:**
-    * **Code:** 200
+    * **Code:** 200 <br />
       **Content:** `{"token": "auth_token_here"}`
 
 * **Error Response:**
@@ -37,10 +37,10 @@ Authorizes user with email and password and returns session token
       url: "/api/session",
       dataType: "json",
       type : "POST",
-      data: {
+      data: JSON.stringify({
         "email": "aaa@example.com",
         "password": "12345"
-      },
+      }),
       success : function(r) {
         console.log(r);
       }
