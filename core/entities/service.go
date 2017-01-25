@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/db"
@@ -12,6 +13,13 @@ import (
 
 const servicesCollectionName = "services"
 
+// ServiceStatusStruct represents current service's task state
+type ServiceStatusStruct struct {
+	Node      string
+	Status    string
+	Timestamp time.Time
+}
+
 // Service describes service entity
 type Service struct {
 	ID              string `bson:"_id,omitempty"`
@@ -19,9 +27,10 @@ type Service struct {
 	Image           string
 	Replicas        *uint64
 	Parallelism     uint64
-	ApplicationID   string      `bson:"application_id,omitempty" json:"application_id"`
-	DockerServiceID string      `bson:"docker_service_id,omitempty" json:"-"`
-	Application     Application `bson:"-" json:"-"`
+	Status          []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
+	ApplicationID   string                `bson:"application_id,omitempty" json:"application_id"`
+	DockerServiceID string                `bson:"docker_service_id,omitempty" json:"-"`
+	Application     Application           `bson:"-" json:"-"`
 }
 
 // GetService return service if it exists

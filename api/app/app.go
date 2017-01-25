@@ -6,6 +6,7 @@ import (
 
 	"github.com/da4nik/swanager/api/common"
 	"github.com/da4nik/swanager/core/entities"
+	swarm_service "github.com/da4nik/swanager/core/swarm/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -48,6 +49,18 @@ func show(c *gin.Context) {
 	}
 
 	app.LoadServices()
+	for _, service := range app.Services {
+		serviceStatus, err := swarm_service.Status(&service)
+		if err == nil {
+			for _, status := range serviceStatus {
+				service.Status = append(service.Status, entities.ServiceStatusStruct{
+					Node:      status.Node,
+					Status:    status.Status,
+					Timestamp: status.Timestamp,
+				})
+			}
+		}
+	}
 
 	c.JSON(http.StatusOK, gin.H{"application": app})
 }
