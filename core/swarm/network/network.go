@@ -1,4 +1,4 @@
-package swarm
+package network
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// CreateNetwork creates swarm network, not working due to different version api and client
-func CreateNetwork(name string) string {
+// Create creates swarm network, not working due to different version api and client
+func Create(name string) string {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -25,8 +25,8 @@ func CreateNetwork(name string) string {
 	return response.ID
 }
 
-// RemoveNetwork removes swarm network
-func RemoveNetwork(name string) error {
+// Remove removes swarm network
+func Remove(name string) error {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -36,6 +36,7 @@ func RemoveNetwork(name string) error {
 	return cli.NetworkRemove(context.Background(), name)
 }
 
-func getNetworkName(service *entities.Service) string {
+// NameForDocker returns network name for docker
+func NameForDocker(service *entities.Service) string {
 	return fmt.Sprintf("%s_%s", service.Application.Name, service.Application.ID)
 }

@@ -1,4 +1,4 @@
-package swarm
+package image
 
 import (
 	"context"
@@ -6,7 +6,8 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func ImageVolumes(name string) (*[]string, error) {
+// Volumes return image volumes
+func Volumes(name string) (*[]string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)

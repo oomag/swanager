@@ -22,6 +22,8 @@ func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
 	{
 		app.GET("", show)
 		app.PUT("", update)
+		app.POST("/start", start)
+		app.POST("/stop", stop)
 	}
 
 	return apps
@@ -85,6 +87,14 @@ func update(c *gin.Context) {
 	app.LoadServices()
 
 	c.JSON(http.StatusOK, gin.H{"application": app})
+}
+
+func start(c *gin.Context) {
+
+}
+
+func stop(c *gin.Context) {
+
 }
 
 func getApplication(c *gin.Context, appID string) (*entities.Application, error) {

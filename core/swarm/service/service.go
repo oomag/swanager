@@ -1,4 +1,4 @@
-package swarm
+package service
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
+	"github.com/da4nik/swanager/core/swarm/image"
+	"github.com/da4nik/swanager/core/swarm/task"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
@@ -14,52 +16,56 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// ServiceStatusStruct represents service state
-type ServiceStatusStruct struct {
+// StatusStruct represents service state
+type StatusStruct struct {
 	Node      string
 	Status    string
 	Timestamp time.Time
 }
 
-// ServiceCreate creates swarm service form Service entity
-func ServiceCreate(service *entities.Service) string {
+// CreateOptions service create params
+type CreateOptions struct {
+	Service     *entities.Service
+	NetworkName string
+}
+
+// Create creates swarm service form Service entity
+func Create(opts CreateOptions) string {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
 
-	CreateNetwork(getNetworkName(service))
-
-	mounts, _ := getServiceMounts(service)
+	mounts, _ := getServiceMounts(opts.Service)
 
 	containerSpec := swarm.ContainerSpec{
-		Image:  service.Image,
+		Image:  opts.Service.Image,
 		Mounts: mounts,
 	}
 
 	updateConfig := swarm.UpdateConfig{
-		Parallelism:     service.Parallelism,
+		Parallelism:     opts.Service.Parallelism,
 		FailureAction:   "pause",
 		MaxFailureRatio: 0.5,
 	}
 
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
-			Name: dockerServiceName(service),
+			Name: NameForDocker(opts.Service),
 			Labels: map[string]string{
-				"swanager_id":    service.ID,
-				"application_id": service.Application.Name,
+				"swanager_id":    opts.Service.ID,
+				"application_id": opts.Service.Application.Name,
 			},
 		},
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: containerSpec,
 			Networks: []swarm.NetworkAttachmentConfig{
-				swarm.NetworkAttachmentConfig{Target: getNetworkName(service)},
+				swarm.NetworkAttachmentConfig{Target: opts.NetworkName},
 			},
 		},
 		Mode: swarm.ServiceMode{
-			Replicated: &swarm.ReplicatedService{Replicas: service.Replicas},
+			Replicated: &swarm.ReplicatedService{Replicas: opts.Service.Replicas},
 		},
 		UpdateConfig: &updateConfig,
 	}
@@ -72,22 +78,22 @@ func ServiceCreate(service *entities.Service) string {
 	}
 
 	if len(responce.Warnings) > 0 {
-		fmt.Println("Wranings:")
+		fmt.Println("Warnings:")
 		fmt.Println(responce.Warnings)
 	}
 
 	return responce.ID
 }
 
-// ServiceRemove removes service
-func ServiceRemove(service *entities.Service) error {
+// Remove removes service
+func Remove(service *entities.Service) error {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
 
-	err = cli.ServiceRemove(context.Background(), dockerServiceName(service))
+	err = cli.ServiceRemove(context.Background(), NameForDocker(service))
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -97,35 +103,32 @@ func ServiceRemove(service *entities.Service) error {
 	return err
 }
 
-// ServiceInspect return service status
-func ServiceInspect(service *entities.Service) (*swarm.Service, error) {
+// Inspect return service status
+func Inspect(service *entities.Service) (*swarm.Service, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
 
-	serviceInspection, raw, err := cli.ServiceInspectWithRaw(context.Background(), dockerServiceName(service))
+	serviceInspection, _, err := cli.ServiceInspectWithRaw(context.Background(), NameForDocker(service))
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("Sdfsdfsdfsdf")
-	fmt.Println(string(raw))
 
 	return &serviceInspection, nil
 }
 
-// ServiceStatus returns service status
-func ServiceStatus(service *entities.Service) ([]ServiceStatusStruct, error) {
-	tasks, err := GetTasks(service)
+// Status returns service status
+func Status(service *entities.Service) ([]StatusStruct, error) {
+	tasks, err := task.ListFor(NameForDocker(service))
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]ServiceStatusStruct, 0)
+	result := make([]StatusStruct, 0)
 	for _, task := range *tasks {
-		result = append(result, ServiceStatusStruct{
+		result = append(result, StatusStruct{
 			Node:      task.NodeID,
 			Status:    string(task.Status.State),
 			Timestamp: task.Status.Timestamp,
@@ -135,13 +138,15 @@ func ServiceStatus(service *entities.Service) ([]ServiceStatusStruct, error) {
 	return result, nil
 }
 
-func dockerServiceName(service *entities.Service) string {
+// NameForDocker return service name for docker
+func NameForDocker(service *entities.Service) string {
 	return fmt.Sprintf("%s-%s-%s", service.Application.Name, service.Name, service.ID)
 }
 
+// getServiceMounts returns mount struct for creating new service
 func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
 	result := make([]mount.Mount, 0)
-	vols, err := ImageVolumes(service.Image)
+	vols, err := image.Volumes(service.Image)
 	if err != nil {
 		return result, err
 	}

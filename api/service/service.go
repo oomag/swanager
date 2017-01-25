@@ -5,7 +5,7 @@ import (
 
 	"github.com/da4nik/swanager/api/common"
 	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm"
+	swarm_service "github.com/da4nik/swanager/core/swarm/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -54,7 +54,7 @@ func show(c *gin.Context) {
 		return
 	}
 
-	serviceStatus, err := swarm.ServiceStatus(service)
+	serviceStatus, err := swarm_service.Status(service)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"service": service, "status_error": err})
 		return
