@@ -1,10 +1,15 @@
-## Authorization / Authentication
----
+# Authorization / Authentication
+
 Authenticaton is processed via `Authorization` header, which should contain session token. Authorization token is got from **POST** `/session` call.
 
 
-**Authorize**
----
+Endpoint | Method | Params | Description
+------ | ------ | ---- | ------
+[/session]() | POST | email, password | Login
+[/session]() | DELETE | | Logout, need to be authenticated
+
+## Authorize
+
 Authorizes user with email and password and returns session token
 
 * **URL:**
@@ -47,8 +52,7 @@ Authorizes user with email and password and returns session token
     });
   ```
 
-**Cancel session**
----
+## Cancel session
 Deauthenticates current session
 
 * **URL:**

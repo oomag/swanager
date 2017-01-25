@@ -1,9 +1,13 @@
-## Manage services
----
+# Manage services
+
+Endpoint | Method | Params | Description
+------ | ------ | ---- | ------
+[/services]() <br /> [/apps/:app_id/services]() | GET | app_id | list app's services
+[/services/:service_id]() <br /> [/apps/:app_id/services/:service_id]()  | GET | app_id | inspect service
+[/services]() <br /> [/apps/:app_id/services]() | POST | app_id | create app service
 
 
-**List**
----
+## List 
 Get services list for application
 
 * **URL:**
@@ -42,8 +46,7 @@ Get services list for application
     });
   ```
 
-**Inspect**
----
+## Inspect
 Inspect service and it's current status
 
 * **URL:**
