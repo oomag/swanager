@@ -82,6 +82,10 @@ func (a *Application) GetServices() ([]Service, error) {
 
 // LoadServices retrieves services associated with application
 func (a *Application) LoadServices() {
+	if len(a.Services) > 0 {
+		return
+	}
+
 	services, err := a.GetServices()
 	if err != nil {
 		return

@@ -10,7 +10,6 @@ import (
 	"github.com/da4nik/swanager/core/swarm/image"
 	"github.com/da4nik/swanager/core/swarm/task"
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
@@ -99,7 +98,6 @@ func Remove(service *entities.Service) error {
 		return err
 	}
 
-	_, err = cli.NetworksPrune(context.Background(), filters.Args{})
 	return err
 }
 

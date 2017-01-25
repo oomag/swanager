@@ -6,6 +6,7 @@ import (
 
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -36,7 +37,20 @@ func Remove(name string) error {
 	return cli.NetworkRemove(context.Background(), name)
 }
 
+// Prune removes unused networks
+func Prune(name string) error {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+	defer cli.Close()
+
+	_, err = cli.NetworksPrune(context.Background(), filters.Args{})
+
+	return err
+}
+
 // NameForDocker returns network name for docker
-func NameForDocker(service *entities.Service) string {
-	return fmt.Sprintf("%s_%s", service.Application.Name, service.Application.ID)
+func NameForDocker(app *entities.Application) string {
+	return fmt.Sprintf("%s_%s", app.Name, app.ID)
 }
