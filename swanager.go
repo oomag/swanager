@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"os/signal"
-
 	_ "github.com/da4nik/swanager/api"
 )
 

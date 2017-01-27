@@ -22,7 +22,7 @@ func WithToken(token string) (*entities.User, error) {
 }
 
 // WithEmailAndPassword auths user with email and password, return newly created token
-func WithEmailAndPassword(email string, password string) (*entities.Token, error) {
+func WithEmailAndPassword(email, password string) (*entities.Token, error) {
 	user, err := entities.GetUser(email)
 	if err != nil {
 		return nil, authError()

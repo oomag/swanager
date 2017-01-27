@@ -15,15 +15,13 @@ type loginMessage struct {
 }
 
 // GetRoutesForRouter adds resource routes to api router
-func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
+func GetRoutesForRouter(router *gin.RouterGroup) {
 
 	auth := router.Group("/session")
 	{
 		auth.POST("", common.Auth(false), login)
 		auth.DELETE("", common.Auth(true), logout)
 	}
-
-	return auth
 }
 
 func login(c *gin.Context) {

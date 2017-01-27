@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/da4nik/swanager/config"
@@ -80,7 +81,7 @@ func (u *User) Create() error {
 	c := getUsersCollection(session)
 
 	u.ID = lib.GenerateUUID()
-	u.Password = lib.CalculateMD5(u.Password)
+	u.Password = lib.CalculateMD5(strings.TrimSpace(u.Password))
 
 	if err := c.Insert(u); err != nil {
 		return fmt.Errorf("Unable to create user: %s", err)

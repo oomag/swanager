@@ -16,7 +16,7 @@ func init() {
 
 	router.Use(corsMiddleware())
 
-	apiGroup := router.Group("/api")
+	apiGroup := router.Group("/api/v1")
 	app.GetRoutesForRouter(apiGroup)
 	service.GetRoutesForRouter(apiGroup)
 	user.GetRoutesForRouter(apiGroup)

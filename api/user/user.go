@@ -1,14 +1,21 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/gin-gonic/gin"
 )
 
+type userCreate struct {
+	Email                string
+	Password             string
+	PasswordConfirmation string `json:"password_confirmation"`
+}
+
 // GetRoutesForRouter adds resource routes to api router
-func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
+func GetRoutesForRouter(router *gin.RouterGroup) {
 
 	apps := router.Group("/users")
 	{
@@ -19,8 +26,6 @@ func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
 	{
 		app.GET("", show)
 	}
-
-	return apps
 }
 
 func show(c *gin.Context) {
@@ -33,5 +38,26 @@ func show(c *gin.Context) {
 }
 
 func create(c *gin.Context) {
-	c.AbortWithStatus(http.StatusOK)
+	var userRequest userCreate
+	if err := c.BindJSON(&userRequest); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if userRequest.Password != userRequest.PasswordConfirmation {
+		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Password and confirmation are not match."))
+		return
+	}
+
+	user := entities.User{
+		Email:    userRequest.Email,
+		Password: userRequest.Password,
+	}
+
+	if err := user.Save(); err != nil {
+		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"user": user})
 }

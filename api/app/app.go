@@ -11,7 +11,7 @@ import (
 )
 
 // GetRoutesForRouter adds resource routes to api router
-func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
+func GetRoutesForRouter(router *gin.RouterGroup) {
 
 	apps := router.Group("/apps", common.Auth(true))
 	{
@@ -26,8 +26,6 @@ func GetRoutesForRouter(router *gin.RouterGroup) *gin.RouterGroup {
 		app.POST("/start", start)
 		app.POST("/stop", stop)
 	}
-
-	return apps
 }
 
 func list(c *gin.Context) {
