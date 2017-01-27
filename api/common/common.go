@@ -48,3 +48,8 @@ func Auth(authenticate bool) gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// RenderError formats JSON error
+func RenderError(c *gin.Context, status int, errors interface{}) {
+	c.JSON(status, gin.H{"errors": errors})
+}

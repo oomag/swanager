@@ -36,13 +36,11 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 }
 
 func list(c *gin.Context) {
-	c.AbortWithStatus(http.StatusOK)
+	c.AbortWithStatus(http.StatusNotImplemented)
 }
 
 func create(c *gin.Context) {
-	// networkID := swarm.CreateNetwork("overlay", "test_network")
-	c.JSON(http.StatusCreated, struct{ ID string }{ID: "test_app_id"})
-	c.AbortWithStatus(http.StatusOK)
+	c.AbortWithStatus(http.StatusNotImplemented)
 }
 
 func show(c *gin.Context) {
@@ -50,7 +48,7 @@ func show(c *gin.Context) {
 
 	service, err := entities.GetService(gin.H{"user_id": currentUser.ID})
 	if err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
+		common.RenderError(c, http.StatusNotFound, "Service not found")
 		return
 	}
 
@@ -61,6 +59,4 @@ func show(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus})
-
-	c.AbortWithStatus(http.StatusOK)
 }

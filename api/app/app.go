@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/da4nik/swanager/api/common"
@@ -33,7 +32,7 @@ func list(c *gin.Context) {
 
 	applications, err := currentUser.GetApplications()
 	if err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		common.RenderError(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"applications": applications})
@@ -42,7 +41,7 @@ func list(c *gin.Context) {
 func show(c *gin.Context) {
 	app, err := getApplication(c, c.Param("app_id"))
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		common.RenderError(c, http.StatusNotFound, err)
 		return
 	}
 
@@ -67,13 +66,18 @@ func create(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 	var app entities.Application
 	if err := c.BindJSON(&app); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.RenderError(c, http.StatusBadRequest, err)
+		return
+	}
+
+	if len(app.Name) == 0 {
+		common.RenderError(c, http.StatusBadRequest, gin.H{"name": "Name is empty"})
 		return
 	}
 
 	app.UserID = currentUser.ID
 	if err := app.Save(); err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		common.RenderError(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
@@ -83,13 +87,13 @@ func create(c *gin.Context) {
 func update(c *gin.Context) {
 	var newApp entities.Application
 	if err := c.BindJSON(&newApp); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.RenderError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	app, err := getApplication(c, c.Param("app_id"))
 	if err != nil {
-		c.AbortWithStatus(http.StatusNotFound)
+		common.RenderError(c, http.StatusBadRequest, "Application not found")
 		return
 	}
 
@@ -108,14 +112,8 @@ func stop(c *gin.Context) {
 
 }
 
-func getApplication(c *gin.Context, appID string) (*entities.Application, error) {
+func getApplication(c *gin.Context, appID string) (app *entities.Application, err error) {
 	currentUser := common.MustGetCurrentUser(c)
-	fmt.Println(currentUser.ID)
-	fmt.Println(appID)
-	app, err := entities.GetApplication(gin.H{"_id": appID, "user_id": currentUser.ID})
-	// app, err := entities.GetApplication(gin.H{"_id": appID})
-	if err != nil {
-		return nil, fmt.Errorf("Application not found")
-	}
-	return app, nil
+	app, err = entities.GetApplication(gin.H{"_id": appID, "user_id": currentUser.ID})
+	return
 }

@@ -45,7 +45,8 @@ func create(c *gin.Context) {
 	}
 
 	if userRequest.Password != userRequest.PasswordConfirmation {
-		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Password and confirmation are not match."))
+		c.AbortWithError(http.StatusBadRequest,
+			fmt.Errorf("Password and confirmation are not match."))
 		return
 	}
 
