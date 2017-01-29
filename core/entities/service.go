@@ -22,15 +22,15 @@ type ServiceStatusStruct struct {
 
 // Service describes service entity
 type Service struct {
-	ID              string `bson:"_id,omitempty"`
-	Name            string
-	Image           string
-	Replicas        *uint64
-	Parallelism     uint64
-	Status          []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
-	ApplicationID   string                `bson:"application_id,omitempty" json:"application_id"`
-	DockerServiceID string                `bson:"docker_service_id,omitempty" json:"-"`
-	Application     Application           `bson:"-" json:"-"`
+	ID            string `bson:"_id,omitempty"`
+	Name          string
+	Image         string
+	Replicas      *uint64
+	Parallelism   uint64
+	Status        []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
+	ApplicationID string                `bson:"application_id,omitempty" json:"application_id,omitempty"`
+	Application   Application           `bson:"-" json:"-"`
+	UserID        string                `bson:"user_id" json:"user_id"`
 }
 
 // GetService return service if it exists
@@ -46,6 +46,40 @@ func GetService(params map[string]interface{}) (*Service, error) {
 	}
 
 	return &service, nil
+}
+
+// GetServices returns services by filters
+func GetServices(params map[string]interface{}) ([]Service, error) {
+	session := db.GetSession()
+	defer session.Close()
+	c := getServicesCollection(session)
+
+	services := make([]Service, 0)
+	if err := c.Find(params).All(&services); err != nil {
+		return nil, err
+	}
+	return services, nil
+}
+
+// Delete - removed entity from database
+func (s *Service) Delete() error {
+	session := db.GetSession()
+	defer session.Close()
+
+	c := getServicesCollection(session)
+	if err := c.RemoveId(s.ID); err != nil {
+		return err
+	}
+	return nil
+}
+
+// UpdateParams - updates service entity with other service entity
+func (s *Service) UpdateParams(newService *Service) error {
+	s.Name = newService.Name
+	s.Image = newService.Image
+	s.Replicas = newService.Replicas
+	s.Parallelism = newService.Parallelism
+	return nil
 }
 
 // Save saves user entity in db

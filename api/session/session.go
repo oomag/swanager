@@ -27,13 +27,13 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 func login(c *gin.Context) {
 	var json loginMessage
 	if err := c.BindJSON(&json); err != nil {
-		common.RenderError(c, http.StatusBadRequest, err)
+		common.RenderError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	token, err := auth.WithEmailAndPassword(json.Email, json.Password)
 	if err != nil {
-		common.RenderError(c, http.StatusUnauthorized, err)
+		common.RenderError(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 
@@ -43,7 +43,7 @@ func login(c *gin.Context) {
 func logout(c *gin.Context) {
 	user := common.MustGetCurrentUser(c)
 	if err := auth.Deauthorize(user); err != nil {
-		common.RenderError(c, http.StatusUnprocessableEntity, err)
+		common.RenderError(c, http.StatusUnprocessableEntity, err.Error())
 		return
 	}
 	c.AbortWithStatus(http.StatusOK)
