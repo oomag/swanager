@@ -41,11 +41,10 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 
 func list(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
-	serviceID := c.Param("service_id")
 
-	services, err := entities.GetServices(gin.H{"user_id": currentUser.ID, "_id": serviceID})
+	services, err := entities.GetServices(gin.H{"user_id": currentUser.ID})
 	if err != nil {
-		common.RenderError(c, http.StatusNotFound, "Service not found")
+		common.RenderError(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
@@ -107,11 +106,15 @@ func create(c *gin.Context) {
 	}
 
 	service.UserID = currentUser.ID
-	if len(service.ApplicationID) == 0 && len(c.Param("app_id")) == 0 {
-		common.RenderError(c, http.StatusBadRequest, gin.H{"app_id": "Application ID (app_id) is empty"})
-		return
+
+	if len(service.ApplicationID) == 0 {
+		if len(c.Param("app_id")) > 0 {
+			service.ApplicationID = c.Param("app_id")
+		} else {
+			common.RenderError(c, http.StatusBadRequest, gin.H{"app_id": "Application ID (app_id) is empty"})
+			return
+		}
 	}
-	service.ApplicationID = c.Param("app_id")
 
 	if err := service.Save(); err != nil {
 		common.RenderError(c, http.StatusUnprocessableEntity, err)

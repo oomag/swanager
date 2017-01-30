@@ -14,10 +14,11 @@ const applicationsCollectionName = "applications"
 
 // Application describes application entity
 type Application struct {
-	ID       string    `json:"id" bson:"_id,omitempty"`
-	Name     string    `json:"name"`
-	UserID   string    `json:"-" bson:"user_id"`
-	Services []Service `json:"services" bson:"-"`
+	ID         string    `json:"id" bson:"_id,omitempty"`
+	Name       string    `json:"name"`
+	UserID     string    `json:"-" bson:"user_id"`
+	Services   []Service `json:"services" bson:"-"`
+	ServiceIDS []string  `json:"service_ids" bson:"-"`
 }
 
 // GetApplication return application if it exists

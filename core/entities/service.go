@@ -22,11 +22,11 @@ type ServiceStatusStruct struct {
 
 // Service describes service entity
 type Service struct {
-	ID            string `bson:"_id,omitempty"`
-	Name          string
-	Image         string
-	Replicas      *uint64
-	Parallelism   uint64
+	ID            string                `bson:"_id,omitempty" json:"id"`
+	Name          string                `json:"name"`
+	Image         string                `json:"image"`
+	Replicas      *uint64               `json:"replicas"`
+	Parallelism   uint64                `json:"parallelism"`
 	Status        []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
 	ApplicationID string                `bson:"application_id,omitempty" json:"application_id,omitempty"`
 	Application   Application           `bson:"-" json:"-"`
