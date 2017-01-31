@@ -41,6 +41,7 @@ func Auth(authenticate bool) gin.HandlerFunc {
 		token := c.Request.Header.Get("Authorization")
 		user, err := auth.WithToken(token)
 		if err != nil {
+			RenderError(c, http.StatusUnauthorized, "Unauthorized")
 			c.AbortWithStatus(http.StatusUnauthorized)
 			return
 		}
