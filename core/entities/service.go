@@ -25,12 +25,13 @@ type Service struct {
 	ID            string                `bson:"_id,omitempty" json:"id"`
 	Name          string                `json:"name"`
 	Image         string                `json:"image"`
+	NSName        string                `json:"ns_name" bson:"ns_name"`
 	Replicas      *uint64               `json:"replicas"`
 	Parallelism   uint64                `json:"parallelism"`
 	Status        []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
 	ApplicationID string                `bson:"application_id,omitempty" json:"application_id,omitempty"`
 	Application   Application           `bson:"-" json:"-"`
-	UserID        string                `bson:"user_id" json:"user_id"`
+	UserID        string                `bson:"user_id" json:"-"`
 }
 
 // GetService return service if it exists
@@ -77,6 +78,7 @@ func (s *Service) Delete() error {
 func (s *Service) UpdateParams(newService *Service) error {
 	s.Name = newService.Name
 	s.Image = newService.Image
+	s.NSName = newService.NSName
 	s.Replicas = newService.Replicas
 	s.Parallelism = newService.Parallelism
 	return nil
@@ -109,6 +111,30 @@ func (s *Service) Create() error {
 	if err := c.Insert(s); err != nil {
 		return fmt.Errorf("Unable to create service: %s", err)
 	}
+	return nil
+}
+
+// LoadApplication loads application to Application field
+func (s *Service) LoadApplication() error {
+	// If it's already loaded, return
+	if &s.Application != nil && len(s.Application.Name) > 0 {
+		return nil
+	}
+
+	session := db.GetSession()
+	defer session.Close()
+	c := getApplicationsCollection(session)
+
+	fmt.Println("Loading app", s.ApplicationID)
+
+	application := Application{}
+
+	if err := c.Find(bson.M{"_id": s.ApplicationID}).One(&application); err != nil {
+		panic(fmt.Errorf("LoadApplication error: %s", err))
+	}
+
+	s.Application = application
+
 	return nil
 }
 

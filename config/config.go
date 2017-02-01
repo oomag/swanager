@@ -29,13 +29,14 @@ func init() {
 	flag.StringVar(&MongoURL, "m", "mongodb://127.0.0.1:27017/swanager", "Mongodb url")
 	flag.StringVar(&DatabaseDriver, "d", "mongo", "Database driver (default: mongo)")
 	flag.StringVar(&DatabaseName, "db", "swanager", "Database name (default: swanager)")
-	flag.StringVar(&MountPathPrefix, "share", "/data", "Mount point base path (default: /data)")
+	flag.StringVar(&MountPathPrefix, "share", "/home/da4nik/docker/data", "Mount point base path (default: /data)")
 	flag.Parse()
 
 	Port = getEnvValue("SWANAGER_PORT", Port)
 	DatabaseDriver = getEnvValue("SWANAGER_DB_DRIVER", DatabaseDriver)
 	DatabaseName = getEnvValue("SWANAGER_DB_NAME", DatabaseName)
-	MountPathPrefix = getEnvValue("SWANAGER_DB_NAME", MountPathPrefix)
+	MountPathPrefix = getEnvValue("SWANAGER_PATH_PREFIX", MountPathPrefix)
+	MountPathPrefix = getEnvValue("SWANAGER_MONGO_URL", MongoURL)
 }
 
 func getEnvValue(varName string, currentValue string) string {

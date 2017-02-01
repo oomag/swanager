@@ -3,6 +3,7 @@ package network
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/docker/docker/api/types"
@@ -52,5 +53,8 @@ func Prune(name string) error {
 
 // NameForDocker returns network name for docker
 func NameForDocker(app *entities.Application) string {
-	return fmt.Sprintf("%s_%s", app.Name, app.ID)
+	return fmt.Sprintf("%s_%s",
+		strings.ToLower(app.Name),
+		app.ID,
+	)
 }

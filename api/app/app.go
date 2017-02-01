@@ -5,6 +5,7 @@ import (
 
 	"github.com/da4nik/swanager/api/common"
 	"github.com/da4nik/swanager/core/entities"
+	"github.com/da4nik/swanager/core/swarm"
 	swarm_service "github.com/da4nik/swanager/core/swarm/service"
 	"github.com/gin-gonic/gin"
 )
@@ -22,8 +23,10 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 	{
 		app.GET("", show)
 		app.PUT("", update)
-		app.POST("/start", start)
-		app.POST("/stop", stop)
+		app.DELETE("", destroy)
+		app.PUT("/start", start)
+		app.PUT("/stop", stop)
+
 	}
 }
 
@@ -105,11 +108,53 @@ func update(c *gin.Context) {
 }
 
 func start(c *gin.Context) {
+	app, err := getApplication(c, c.Param("app_id"))
+	if err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Application not found: "+err.Error())
+		return
+	}
 
+	if err := swarm.StartApplication(app); err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Error starting application: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"application": app})
 }
 
 func stop(c *gin.Context) {
+	app, err := getApplication(c, c.Param("app_id"))
+	if err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Application not found: "+err.Error())
+		return
+	}
 
+	if err := swarm.StopApplication(app); err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Error stoping application: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"application": app})
+}
+
+func destroy(c *gin.Context) {
+	app, err := getApplication(c, c.Param("app_id"))
+	if err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Application not found: "+err.Error())
+		return
+	}
+
+	if err := swarm.StopApplication(app); err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Error stoping application: "+err.Error())
+		return
+	}
+
+	if err := app.Delete(); err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Error deleting application: "+err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"application": app})
 }
 
 func getApplication(c *gin.Context, appID string) (app *entities.Application, err error) {

@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/da4nik/swanager/config"
@@ -29,12 +30,14 @@ type CreateOptions struct {
 }
 
 // Create creates swarm service form Service entity
-func Create(opts CreateOptions) string {
+func Create(opts CreateOptions) (string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
+
+	opts.Service.LoadApplication()
 
 	mounts, _ := getServiceMounts(opts.Service)
 
@@ -54,7 +57,7 @@ func Create(opts CreateOptions) string {
 			Name: NameForDocker(opts.Service),
 			Labels: map[string]string{
 				"swanager_id":    opts.Service.ID,
-				"application_id": opts.Service.Application.Name,
+				"application_id": opts.Service.Application.ID,
 			},
 		},
 		TaskTemplate: swarm.TaskSpec{
@@ -81,7 +84,7 @@ func Create(opts CreateOptions) string {
 		fmt.Println(responce.Warnings)
 	}
 
-	return responce.ID
+	return responce.ID, nil
 }
 
 // Remove removes service
@@ -138,7 +141,10 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 
 // NameForDocker return service name for docker
 func NameForDocker(service *entities.Service) string {
-	return fmt.Sprintf("%s-%s-%s", service.Application.Name, service.Name, service.ID)
+	service.LoadApplication()
+	return fmt.Sprintf("%s-%s",
+		strings.ToLower(service.Application.Name),
+		strings.ToLower(service.NSName))
 }
 
 // getServiceMounts returns mount struct for creating new service

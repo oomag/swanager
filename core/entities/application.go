@@ -66,6 +66,26 @@ func (a *Application) Create() error {
 	return nil
 }
 
+// Delete - deletes applications and it's services
+func (a *Application) Delete() error {
+	session := db.GetSession()
+	defer session.Close()
+	c := getApplicationsCollection(session)
+
+	a.LoadServices()
+
+	for _, service := range a.Services {
+		if err := service.Delete(); err != nil {
+			fmt.Printf("Problems deleting service: %s", err.Error())
+		}
+	}
+
+	if err := c.RemoveId(a.ID); err != nil {
+		return fmt.Errorf("Error deleting application: %s", err.Error())
+	}
+	return nil
+}
+
 // GetServices returns application services
 func (a *Application) GetServices() ([]Service, error) {
 	session := db.GetSession()
