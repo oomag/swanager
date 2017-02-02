@@ -18,6 +18,7 @@ import (
 
 // StatusStruct represents service state
 type StatusStruct struct {
+	TaskID    string
 	Node      string
 	Status    string
 	Timestamp time.Time
@@ -130,6 +131,7 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 	result := make([]StatusStruct, 0)
 	for _, task := range *tasks {
 		result = append(result, StatusStruct{
+			TaskID:    task.ID,
 			Node:      task.NodeID,
 			Status:    string(task.Status.State),
 			Timestamp: task.Status.Timestamp,

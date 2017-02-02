@@ -15,9 +15,10 @@ const servicesCollectionName = "services"
 
 // ServiceStatusStruct represents current service's task state
 type ServiceStatusStruct struct {
-	Node      string
-	Status    string
-	Timestamp time.Time
+	ReplicaID string    `json:"replica_id"`
+	Node      string    `json:"node"`
+	Status    string    `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // Service describes service entity
@@ -125,8 +126,6 @@ func (s *Service) LoadApplication() error {
 	defer session.Close()
 	c := getApplicationsCollection(session)
 
-	fmt.Println("Loading app", s.ApplicationID)
-
 	application := Application{}
 
 	if err := c.Find(bson.M{"_id": s.ApplicationID}).One(&application); err != nil {
@@ -136,6 +135,11 @@ func (s *Service) LoadApplication() error {
 	s.Application = application
 
 	return nil
+}
+
+// AddServiceStatus -sdfkjsdf
+func (s *Service) AddServiceStatus(status ServiceStatusStruct) {
+	s.Status = append(s.Status, status)
 }
 
 func getServicesCollection(session *mgo.Session) *mgo.Collection {

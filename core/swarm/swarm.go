@@ -35,3 +35,21 @@ func StopApplication(app *entities.Application) error {
 
 	return nil
 }
+
+// GetServiceStatuses - loads service statused to service.Status field
+func GetServiceStatuses(service *entities.Service) {
+	states, err := swarm_service.Status(service)
+	if err != nil {
+		service.AddServiceStatus(entities.ServiceStatusStruct{Status: "not_exists"})
+		return
+	}
+
+	for _, state := range states {
+		service.AddServiceStatus(entities.ServiceStatusStruct{
+			ReplicaID: state.TaskID,
+			Node:      state.Node,
+			Status:    state.Status,
+			Timestamp: state.Timestamp,
+		})
+	}
+}

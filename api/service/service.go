@@ -5,6 +5,7 @@ import (
 
 	"github.com/da4nik/swanager/api/common"
 	"github.com/da4nik/swanager/core/entities"
+	"github.com/da4nik/swanager/core/swarm"
 	swarm_service "github.com/da4nik/swanager/core/swarm/service"
 	"github.com/gin-gonic/gin"
 )
@@ -46,6 +47,10 @@ func list(c *gin.Context) {
 	if err != nil {
 		common.RenderError(c, http.StatusInternalServerError, err.Error())
 		return
+	}
+
+	for serviceIndex := range services {
+		swarm.GetServiceStatuses(&services[serviceIndex])
 	}
 
 	c.JSON(http.StatusOK, gin.H{"services": services})
@@ -146,4 +151,21 @@ func getService(c *gin.Context, serviceID string) (app *entities.Service, err er
 	currentUser := common.MustGetCurrentUser(c)
 	app, err = entities.GetService(gin.H{"_id": serviceID, "user_id": currentUser.ID})
 	return
+}
+
+func loadServiceStatus(service *entities.Service) {
+	states, err := swarm_service.Status(service)
+
+	if err != nil {
+		service.AddServiceStatus(entities.ServiceStatusStruct{Status: "Not exists"})
+		return
+	}
+
+	for _, state := range states {
+		service.AddServiceStatus(entities.ServiceStatusStruct{
+			Node:      state.Node,
+			Status:    state.Status,
+			Timestamp: state.Timestamp,
+		})
+	}
 }
