@@ -20,12 +20,16 @@ var (
 
 	// MountPathPrefix base mounted share path
 	MountPathPrefix string
+
+	// LogFileName path to logfile
+	LogFileName string
 )
 
 func init() {
 	loadConfigFile()
 
 	flag.StringVar(&Port, "p", "4945", "Api port")
+	flag.StringVar(&LogFileName, "l", "", "Path to log file (default: stdout)")
 	flag.StringVar(&MongoURL, "m", "mongodb://127.0.0.1:27017/swanager", "Mongodb url")
 	flag.StringVar(&DatabaseDriver, "d", "mongo", "Database driver (default: mongo)")
 	flag.StringVar(&DatabaseName, "db", "swanager", "Database name (default: swanager)")
@@ -33,6 +37,7 @@ func init() {
 	flag.Parse()
 
 	Port = getEnvValue("SWANAGER_PORT", Port)
+	LogFileName = getEnvValue("SWANAGER_LOG", LogFileName)
 	MongoURL = getEnvValue("SWANAGER_MONGO_URL", MongoURL)
 	DatabaseDriver = getEnvValue("SWANAGER_DB_DRIVER", DatabaseDriver)
 	DatabaseName = getEnvValue("SWANAGER_DB_NAME", DatabaseName)

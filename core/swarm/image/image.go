@@ -3,6 +3,7 @@ package image
 import (
 	"context"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/docker/docker/client"
 )
 
@@ -23,6 +24,11 @@ func Volumes(name string) (*[]string, error) {
 	for k := range imageInfo.Config.Volumes {
 		volumes = append(volumes, k)
 	}
+
+	log.WithFields(log.Fields{
+		"name":    name,
+		"volumes": volumes,
+	}).Debugf("Getting '%s' image volumes.", name)
 
 	return &volumes, nil
 }

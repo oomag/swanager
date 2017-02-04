@@ -1,9 +1,9 @@
 package user
 
 import (
-	"fmt"
 	"net/http"
 
+	"github.com/da4nik/swanager/api/common"
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/gin-gonic/gin"
 )
@@ -31,7 +31,7 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 func show(c *gin.Context) {
 	user, err := entities.GetUser(c.Param("user_id"))
 	if err != nil {
-		c.AbortWithError(http.StatusNotFound, err)
+		common.RenderError(c, http.StatusNotFound, err)
 		return
 	}
 	c.JSON(http.StatusOK, user)
@@ -40,13 +40,12 @@ func show(c *gin.Context) {
 func create(c *gin.Context) {
 	var userRequest userCreate
 	if err := c.BindJSON(&userRequest); err != nil {
-		c.AbortWithError(http.StatusBadRequest, err)
+		common.RenderError(c, http.StatusBadRequest, err)
 		return
 	}
 
 	if userRequest.Password != userRequest.PasswordConfirmation {
-		c.AbortWithError(http.StatusBadRequest,
-			fmt.Errorf("Password and confirmation are not match."))
+		common.RenderError(c, http.StatusBadRequest, "Password and confirmation are not match.")
 		return
 	}
 
@@ -56,7 +55,7 @@ func create(c *gin.Context) {
 	}
 
 	if err := user.Save(); err != nil {
-		c.AbortWithError(http.StatusUnprocessableEntity, err)
+		common.RenderError(c, http.StatusUnprocessableEntity, err)
 		return
 	}
 
