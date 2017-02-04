@@ -33,10 +33,10 @@ func init() {
 	flag.Parse()
 
 	Port = getEnvValue("SWANAGER_PORT", Port)
+	MongoURL = getEnvValue("SWANAGER_MONGO_URL", MongoURL)
 	DatabaseDriver = getEnvValue("SWANAGER_DB_DRIVER", DatabaseDriver)
 	DatabaseName = getEnvValue("SWANAGER_DB_NAME", DatabaseName)
 	MountPathPrefix = getEnvValue("SWANAGER_PATH_PREFIX", MountPathPrefix)
-	MountPathPrefix = getEnvValue("SWANAGER_MONGO_URL", MongoURL)
 }
 
 func getEnvValue(varName string, currentValue string) string {
