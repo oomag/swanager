@@ -10,6 +10,7 @@ import (
 	"github.com/da4nik/swanager/api/service"
 	"github.com/da4nik/swanager/api/session"
 	"github.com/da4nik/swanager/api/user"
+	"github.com/da4nik/swanager/api/ws"
 	"github.com/da4nik/swanager/config"
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,8 @@ func Start() {
 
 	router.Use(corsMiddleware())
 	router.Use(gin.Recovery())
+
+	ws.InitWS(router)
 
 	apiGroup := router.Group("/api/v1")
 	app.GetRoutesForRouter(apiGroup)
