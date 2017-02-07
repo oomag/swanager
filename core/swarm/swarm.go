@@ -1,9 +1,15 @@
 package swarm
 
 import (
+	"context"
+
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/da4nik/swanager/core/swarm/network"
 	swarm_service "github.com/da4nik/swanager/core/swarm/service"
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/filters"
+	"github.com/docker/docker/client"
 )
 
 // StartApplication starts a whole application
@@ -52,4 +58,22 @@ func GetServiceStatuses(service *entities.Service) {
 			Timestamp: state.Timestamp,
 		})
 	}
+}
+
+// Events - returns events and error channel for docker events
+func Events() (eventChan <-chan events.Message, errChan <-chan error, cancelFunc func()) {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+	defer cli.Close()
+
+	ctx, cancelFunc := context.WithCancel(context.Background())
+
+	// TODO: Show only container events
+	filters := filters.NewArgs()
+	filters.Add("type", "container")
+
+	eventChan, errChan = cli.Events(ctx, types.EventsOptions{Filters: filters})
+	return
 }

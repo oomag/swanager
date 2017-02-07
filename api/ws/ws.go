@@ -18,6 +18,7 @@ type authMessage struct {
 type answer struct {
 	AnswerType string `json:"type"`
 	Data       string
+	Service    *entities.Service `json:"service,omitempty"`
 }
 
 type connContext struct {
@@ -25,6 +26,7 @@ type connContext struct {
 	User      *entities.User
 	Conn      *websocket.Conn
 	AuthError error
+	Incoming  chan entities.Service
 }
 
 const (
@@ -37,6 +39,8 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
+
+var clients = make([]chan entities.Service, 0)
 
 // InitWS add ws handler for api
 func InitWS(router *gin.Engine) {
@@ -74,6 +78,23 @@ func wsHandler(c *gin.Context) {
 	}
 }
 
+func (c *connContext) listen() {
+	for {
+		select {
+		case service := <-c.Incoming:
+			logrus.Debugf("[listen] got %+v ", service)
+			if service.Name == "" {
+				return
+			}
+
+			c.sendAnswer(answer{
+				AnswerType: "data",
+				Service:    &service,
+			})
+		}
+	}
+}
+
 func (c *connContext) processMessage(msg []byte) {
 	c.Conn.WriteMessage(1, msg)
 }
@@ -95,11 +116,16 @@ func (c *connContext) authenticate(msg []byte) {
 	logrus.Debugf("[WS] Authenticated, proceeding with normal mode")
 
 	c.State = stateWorking
+	incoming := make(chan entities.Service, 10)
+	c.Incoming = incoming
+	clients = append(clients, incoming)
 
 	c.sendAnswer(answer{
 		AnswerType: "authenticated",
 		Data:       "Ok",
 	})
+
+	go c.listen()
 }
 
 func (c *connContext) authError() {

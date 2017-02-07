@@ -7,6 +7,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/api"
 	"github.com/da4nik/swanager/config"
+	"github.com/da4nik/swanager/events"
 	"github.com/gin-gonic/gin"
 )
 
@@ -41,9 +42,12 @@ func main() {
 	// this feature was added in go 1.8, waiting for release
 	go api.Start()
 
+	events.Start()
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
 
 	logFile.Close()
+	events.Stop()
 }
