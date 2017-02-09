@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 	"time"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/da4nik/swanager/core/swarm/image"
@@ -55,7 +55,7 @@ func Create(opts CreateOptions) (string, error) {
 
 	serviceSpec := swarm.ServiceSpec{
 		Annotations: swarm.Annotations{
-			Name: NameForDocker(opts.Service),
+			Name: opts.Service.NSName,
 			Labels: map[string]string{
 				"swanager_id":    opts.Service.ID,
 				"application_id": opts.Service.Application.ID,
@@ -75,14 +75,16 @@ func Create(opts CreateOptions) (string, error) {
 
 	serviceCreateOptions := types.ServiceCreateOptions{}
 
+	log().WithField("spec", fmt.Sprintf("%+v", serviceSpec)).Debug("Creating swarm service")
+
 	responce, err := cli.ServiceCreate(context.Background(), serviceSpec, serviceCreateOptions)
 	if err != nil {
 		panic(err)
 	}
 
 	if len(responce.Warnings) > 0 {
-		fmt.Println("Warnings:")
-		fmt.Println(responce.Warnings)
+		log().Debug("Warnings:")
+		log().Debugf("%+v", responce.Warnings)
 	}
 
 	return responce.ID, nil
@@ -90,13 +92,14 @@ func Create(opts CreateOptions) (string, error) {
 
 // Remove removes service
 func Remove(service *entities.Service) error {
+	log().Debugf("Removing service. %+v", service)
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
 
-	err = cli.ServiceRemove(context.Background(), NameForDocker(service))
+	err = cli.ServiceRemove(context.Background(), service.NSName)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -113,7 +116,7 @@ func Inspect(service *entities.Service) (*swarm.Service, error) {
 	}
 	defer cli.Close()
 
-	serviceInspection, _, err := cli.ServiceInspectWithRaw(context.Background(), NameForDocker(service))
+	serviceInspection, _, err := cli.ServiceInspectWithRaw(context.Background(), service.NSName)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +126,7 @@ func Inspect(service *entities.Service) (*swarm.Service, error) {
 
 // Status returns service status
 func Status(service *entities.Service) ([]StatusStruct, error) {
-	tasks, err := task.ListFor(NameForDocker(service))
+	tasks, err := task.ListFor(service.NSName)
 	if err != nil {
 		return nil, err
 	}
@@ -139,14 +142,6 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 	}
 
 	return result, nil
-}
-
-// NameForDocker return service name for docker
-func NameForDocker(service *entities.Service) string {
-	service.LoadApplication()
-	return fmt.Sprintf("%s-%s",
-		strings.ToLower(service.Application.Name),
-		strings.ToLower(service.NSName))
 }
 
 // getServiceMounts returns mount struct for creating new service
@@ -178,4 +173,8 @@ func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
 
 func getMountPathPrefix() string {
 	return config.MountPathPrefix
+}
+
+func log() *logrus.Entry {
+	return logrus.WithField("module", "swarm.Service")
 }

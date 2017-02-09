@@ -1,15 +1,13 @@
 package events
 
 import (
+	"fmt"
 	"io"
-	"strings"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/api/ws"
-	"github.com/da4nik/swanager/core/entities"
 	"github.com/da4nik/swanager/core/swarm"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/gin-gonic/gin"
 )
 
 var quit = make(chan bool, 1)
@@ -29,25 +27,19 @@ func listen() {
 	for {
 		select {
 		case message := <-messageChan:
-			parts := strings.Split(message.Actor.Attributes["com.docker.swarm.service.name"], "-")
+			log().WithField("message", fmt.Sprintf("%+v", message)).Debug("Got docker event")
 
-			application, err := entities.GetApplication(gin.H{"name": parts[0]})
-			if err != nil {
-				continue
-			}
-
-			application.LoadServices()
-			for serviceIndex := range application.Services {
-				swarm.GetServiceStatuses(&application.Services[serviceIndex])
-				ws.Notify(&application.Services[serviceIndex])
-			}
+			ws.NotifyServiceState(ws.NotifyServiceStateMessage{
+				ServiceName: message.Actor.Attributes["com.docker.swarm.service.name"],
+				Action:      message.Action,
+			})
 
 			break
 		case err := <-errChan:
 			if err == io.EOF {
 				return
 			}
-			logrus.Debug("Docker error:")
+			log().Debug("Docker error:")
 			spew.Dump(err)
 			break
 		case <-quit:
@@ -55,4 +47,8 @@ func listen() {
 			return
 		}
 	}
+}
+
+func log() *logrus.Entry {
+	return logrus.WithField("module", "events")
 }

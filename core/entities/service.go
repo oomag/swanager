@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"hash/crc32"
+
+	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/db"
 	"github.com/da4nik/swanager/lib"
@@ -79,7 +82,6 @@ func (s *Service) Delete() error {
 func (s *Service) UpdateParams(newService *Service) error {
 	s.Name = newService.Name
 	s.Image = newService.Image
-	s.NSName = newService.NSName
 	s.Replicas = newService.Replicas
 	s.Parallelism = newService.Parallelism
 	return nil
@@ -103,11 +105,17 @@ func (s *Service) Save() error {
 
 // Create creates user in db
 func (s *Service) Create() error {
+	logService().WithField("service", s).Debugf("Creating service")
 	session := db.GetSession()
 	defer session.Close()
 	c := getServicesCollection(session)
 
+	s.LoadApplication()
+
 	s.ID = lib.GenerateUUID()
+	s.NSName = nsName(s)
+
+	logService().WithField("service", s).Debugf("Creating service")
 
 	if err := c.Insert(s); err != nil {
 		return fmt.Errorf("Unable to create service: %s", err)
@@ -144,4 +152,20 @@ func (s *Service) AddServiceStatus(status ServiceStatusStruct) {
 
 func getServicesCollection(session *mgo.Session) *mgo.Collection {
 	return session.DB(config.DatabaseName).C(servicesCollectionName)
+}
+
+func nsName(service *Service) string {
+	service.LoadApplication()
+
+	app := lib.IdentifierName(service.Application.Name)
+	serv := lib.IdentifierName(service.Name)
+
+	name := fmt.Sprintf("%s-%s-%s", app, serv, service.ID)
+	crc32q := crc32.MakeTable(0xD5828281)
+
+	return fmt.Sprintf("%s-%s-%08x", app, serv, crc32.Checksum([]byte(name), crc32q))
+}
+
+func logService() *logrus.Entry {
+	return logrus.WithField("module", "entities.Service")
 }

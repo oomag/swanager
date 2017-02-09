@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/core/entities"
+	"github.com/da4nik/swanager/lib"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
@@ -13,6 +15,7 @@ import (
 
 // Create creates swarm network, not working due to different version api and client
 func Create(name string) string {
+	log().Debugf("Creating network %s", name)
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -22,13 +25,18 @@ func Create(name string) string {
 	createOptions := types.NetworkCreate{Driver: "overlay"}
 
 	// TODO: Check error if unable to create network, but not with duplication error
-	response, _ := cli.NetworkCreate(context.Background(), name, createOptions)
+	response, err := cli.NetworkCreate(context.Background(), name, createOptions)
+	if err != nil {
+		log().Debugf("Unable to create network: %e", err)
+		return ""
+	}
 
 	return response.ID
 }
 
 // Remove removes swarm network
 func Remove(name string) error {
+	log().Debugf("Removing network %s", name)
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -53,8 +61,10 @@ func Prune(name string) error {
 
 // NameForDocker returns network name for docker
 func NameForDocker(app *entities.Application) string {
-	return fmt.Sprintf("%s_%s",
-		strings.ToLower(app.Name),
-		app.ID,
-	)
+	name := fmt.Sprintf("%s-%s", lib.IdentifierName(app.Name), app.ID)[:32]
+	return strings.Trim(name, " -")
+}
+
+func log() *logrus.Entry {
+	return logrus.WithFields(logrus.Fields{"module": "swanager.Network"})
 }

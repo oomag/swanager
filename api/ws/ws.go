@@ -40,7 +40,7 @@ var wsUpgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-var clients = make([]chan entities.Service, 0)
+var clients = make(map[string]*connContext)
 
 // InitWS add ws handler for api
 func InitWS(router *gin.Engine) {
@@ -63,6 +63,9 @@ func wsHandler(c *gin.Context) {
 	for {
 		t, msg, err := conn.ReadMessage()
 		if err != nil {
+			if context.State == stateWorking {
+				delete(clients, context.User.ID)
+			}
 			break
 		}
 
@@ -82,7 +85,7 @@ func (c *connContext) listen() {
 	for {
 		select {
 		case service := <-c.Incoming:
-			logrus.Debugf("[listen] got %+v ", service)
+			log().WithField("UserID", c.User.ID).Debugf("Senging to client %+v", service)
 			if service.Name == "" {
 				return
 			}
@@ -118,7 +121,8 @@ func (c *connContext) authenticate(msg []byte) {
 	c.State = stateWorking
 	incoming := make(chan entities.Service, 10)
 	c.Incoming = incoming
-	clients = append(clients, incoming)
+
+	clients[c.User.ID] = c
 
 	c.sendAnswer(answer{
 		AnswerType: "authenticated",
@@ -142,4 +146,8 @@ func (c *connContext) authError() {
 func (c *connContext) sendAnswer(ans answer) {
 	result, _ := json.Marshal(ans)
 	c.Conn.WriteMessage(1, result)
+}
+
+func log() *logrus.Entry {
+	return logrus.WithField("service", "api.ws")
 }
