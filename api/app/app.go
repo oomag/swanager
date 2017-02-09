@@ -108,33 +108,44 @@ func update(c *gin.Context) {
 }
 
 func start(c *gin.Context) {
+	currentUser := common.MustGetCurrentUser(c)
 	app, err := getApplication(c, c.Param("app_id"))
 	if err != nil {
 		common.RenderError(c, http.StatusBadRequest, "Application not found: "+err.Error())
 		return
 	}
 
-	if err := swarm.StartApplication(app); err != nil {
-		common.RenderError(c, http.StatusBadRequest, "Error starting application: "+err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"application": app})
+	common.RunDelayed(common.DelayedJobContext{
+		User:       currentUser,
+		GinContext: c,
+		Process: func() (string, error) {
+			if errInt := swarm.StartApplication(app); errInt != nil {
+				return "", errInt
+			}
+			return "started", nil
+		},
+	})
 }
 
 func stop(c *gin.Context) {
+	currentUser := common.MustGetCurrentUser(c)
 	app, err := getApplication(c, c.Param("app_id"))
 	if err != nil {
 		common.RenderError(c, http.StatusBadRequest, "Application not found: "+err.Error())
 		return
 	}
 
-	if err := swarm.StopApplication(app); err != nil {
-		common.RenderError(c, http.StatusBadRequest, "Error stoping application: "+err.Error())
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"application": app})
+	common.RunDelayed(common.DelayedJobContext{
+		GinContext: c,
+		User:       currentUser,
+		Process: func() (string, error) {
+			if err := swarm.StopApplication(app); err != nil {
+				common.RenderError(c, http.StatusBadRequest, "Error stoping application: "+err.Error())
+				return "", err
+			}
+			return "stoped", nil
+		},
+	})
 }
 
 func destroy(c *gin.Context) {

@@ -1,7 +1,6 @@
 package events
 
 import (
-	"fmt"
 	"io"
 
 	"github.com/Sirupsen/logrus"
@@ -27,7 +26,8 @@ func listen() {
 	for {
 		select {
 		case message := <-messageChan:
-			log().WithField("message", fmt.Sprintf("%+v", message)).Debug("Got docker event")
+			log().Debugf("Got docker event [%s] %s", message.Action, message.Actor.Attributes["com.docker.swarm.service.name"])
+			// log().WithField("message", fmt.Sprintf("%+v", message)).Debug("Got docker event")
 
 			ws.NotifyServiceState(ws.NotifyServiceStateMessage{
 				ServiceName: message.Actor.Attributes["com.docker.swarm.service.name"],

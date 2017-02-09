@@ -7,6 +7,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/api/app"
+	"github.com/da4nik/swanager/api/job"
 	"github.com/da4nik/swanager/api/service"
 	"github.com/da4nik/swanager/api/session"
 	"github.com/da4nik/swanager/api/user"
@@ -35,6 +36,7 @@ func Start() {
 	service.GetRoutesForRouter(apiGroup)
 	user.GetRoutesForRouter(apiGroup)
 	session.GetRoutesForRouter(apiGroup)
+	job.GetRoutesForRouter(apiGroup)
 
 	router.Run(":" + config.Port)
 }

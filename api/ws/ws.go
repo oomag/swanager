@@ -21,7 +21,7 @@ type answer struct {
 	Service    *entities.Service `json:"service,omitempty"`
 }
 
-type connContext struct {
+type clientConnection struct {
 	State     string
 	User      *entities.User
 	Conn      *websocket.Conn
@@ -40,7 +40,7 @@ var wsUpgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-var clients = make(map[string]*connContext)
+var clients = make(map[string]*clientConnection)
 
 // InitWS add ws handler for api
 func InitWS(router *gin.Engine) {
@@ -55,7 +55,7 @@ func wsHandler(c *gin.Context) {
 	}
 	defer conn.Close()
 
-	context := connContext{
+	context := clientConnection{
 		State: stateUnauthenticated,
 		Conn:  conn,
 	}
@@ -81,11 +81,11 @@ func wsHandler(c *gin.Context) {
 	}
 }
 
-func (c *connContext) listen() {
+func (c *clientConnection) listen() {
 	for {
 		select {
 		case service := <-c.Incoming:
-			log().WithField("UserID", c.User.ID).Debugf("Senging to client %+v", service)
+			log().WithField("UserID", c.User.ID).Debugf("Senging to client %s", service.NSName)
 			if service.Name == "" {
 				return
 			}
@@ -98,11 +98,11 @@ func (c *connContext) listen() {
 	}
 }
 
-func (c *connContext) processMessage(msg []byte) {
+func (c *clientConnection) processMessage(msg []byte) {
 	c.Conn.WriteMessage(1, msg)
 }
 
-func (c *connContext) authenticate(msg []byte) {
+func (c *clientConnection) authenticate(msg []byte) {
 	var message authMessage
 	c.AuthError = json.Unmarshal(msg, &message)
 	if c.AuthError != nil {
@@ -132,7 +132,7 @@ func (c *connContext) authenticate(msg []byte) {
 	go c.listen()
 }
 
-func (c *connContext) authError() {
+func (c *clientConnection) authError() {
 	logrus.Debugf("[WS] Auth error: %s", c.AuthError.Error())
 
 	c.sendAnswer(answer{
@@ -143,11 +143,11 @@ func (c *connContext) authError() {
 	c.Conn.Close()
 }
 
-func (c *connContext) sendAnswer(ans answer) {
+func (c *clientConnection) sendAnswer(ans answer) {
 	result, _ := json.Marshal(ans)
 	c.Conn.WriteMessage(1, result)
 }
 
 func log() *logrus.Entry {
-	return logrus.WithField("service", "api.ws")
+	return logrus.WithField("modeule", "api.ws")
 }

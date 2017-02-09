@@ -23,8 +23,8 @@ func NotifyServiceState(message NotifyServiceStateMessage) {
 
 	service.LoadApplication()
 
-	if clientContext, ok := clients[service.Application.UserID]; ok {
+	if clientConnection, ok := clients[service.Application.UserID]; ok {
 		swarm.GetServiceStatuses(service)
-		clientContext.Incoming <- *service
+		clientConnection.Incoming <- *service
 	}
 }

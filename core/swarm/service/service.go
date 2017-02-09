@@ -92,7 +92,7 @@ func Create(opts CreateOptions) (string, error) {
 
 // Remove removes service
 func Remove(service *entities.Service) error {
-	log().Debugf("Removing service. %+v", service)
+	log().Debugf("Removing service. %s", service.NSName)
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
@@ -176,5 +176,5 @@ func getMountPathPrefix() string {
 }
 
 func log() *logrus.Entry {
-	return logrus.WithField("module", "swarm.Service")
+	return logrus.WithField("module", "swarm.service")
 }
