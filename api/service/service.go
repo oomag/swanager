@@ -25,19 +25,6 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 		service.PUT("", update)
 		service.DELETE("", delete)
 	}
-
-	appServices := router.Group("/apps/:app_id/services", common.Auth(true))
-	{
-		appServices.GET("", list)
-		appServices.POST("", create)
-	}
-
-	appService := appServices.Group("/:service_id")
-	{
-		appService.GET("", show)
-		appService.PUT("", update)
-		appService.DELETE("", delete)
-	}
 }
 
 func list(c *gin.Context) {
@@ -81,7 +68,7 @@ func update(c *gin.Context) {
 
 	service, err := getService(c, c.Param("service_id"))
 	if err != nil {
-		common.RenderError(c, http.StatusBadRequest, "Service not found")
+		common.RenderError(c, http.StatusNotFound, "Service not found")
 		return
 	}
 
@@ -147,6 +134,7 @@ func show(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus})
 }
 
+// getService returns service by it's id and current user id
 func getService(c *gin.Context, serviceID string) (app *entities.Service, err error) {
 	currentUser := common.MustGetCurrentUser(c)
 	app, err = entities.GetService(gin.H{"_id": serviceID, "user_id": currentUser.ID})

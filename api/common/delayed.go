@@ -8,16 +8,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// DelayedJobContext - context for delayed job
-type DelayedJobContext struct {
+// AsyncJobContext - context for delayed job
+type AsyncJobContext struct {
 	User       *entities.User
 	Job        *entities.Job
-	Process    func() (string, error)
+	Process    func() (interface{}, error)
 	GinContext *gin.Context
 }
 
-// RunDelayed starts delayed job
-func RunDelayed(context DelayedJobContext) {
+// RunAsync starts delayed job
+func RunAsync(context AsyncJobContext) {
 	job, err := entities.CreateJob(context.User)
 	if err != nil {
 		RenderError(context.GinContext, http.StatusInternalServerError, err.Error())
@@ -28,17 +28,16 @@ func RunDelayed(context DelayedJobContext) {
 
 	go process(&context)
 
-	// c.JSON(http.StatusOK, gin.H{"application": app})
 	context.GinContext.JSON(http.StatusOK, gin.H{
 		"job_id": job.ID,
 		"url":    fmt.Sprintf("http://%s/api/v1/jobs/%s", context.GinContext.Request.Host, job.ID),
 	})
 }
 
-func process(context *DelayedJobContext) {
+func process(context *AsyncJobContext) {
 	result, err := context.Process()
 	if err != nil {
-		context.Job.SetState(entities.JobStateError, err.Error())
+		context.Job.SetState(entities.JobStateError, err)
 		return
 	}
 	context.Job.SetState(entities.JobStateSuccess, result)

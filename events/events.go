@@ -23,6 +23,7 @@ func Stop() {
 
 func listen() {
 	messageChan, errChan, cancelListening := swarm.Events()
+	log().Debug("Starting listening swarm events.")
 	for {
 		select {
 		case message := <-messageChan:

@@ -23,12 +23,12 @@ const jobsCollectionName = "jobs"
 
 // Job struct
 type Job struct {
-	ID         string    `json:"id" bson:"_id"`
-	UserID     string    `json:"user_id" bson:"user_id"`
-	State      string    `json:"state" bson:"state"`
-	Result     string    `json:"result" bson:"result"`
-	StartedAt  time.Time `json:"started_at" bson:"started_at"`
-	FinishedAt time.Time `json:"finished_at" bson:"finished_at"`
+	ID         string      `json:"id" bson:"_id"`
+	UserID     string      `json:"user_id" bson:"user_id"`
+	State      string      `json:"state" bson:"state"`
+	Result     interface{} `json:"result" bson:"result"`
+	StartedAt  time.Time   `json:"started_at" bson:"started_at"`
+	FinishedAt time.Time   `json:"finished_at" bson:"finished_at"`
 }
 
 // CreateJob creates new job with "working" state
@@ -59,7 +59,7 @@ func GetJob(id string) (job *Job, err error) {
 }
 
 // SetState sets state and result for current job
-func (j *Job) SetState(state string, result string) error {
+func (j *Job) SetState(state string, result interface{}) error {
 	session := db.GetSession()
 	defer session.Close()
 	c := getJobsCollection(session)

@@ -26,7 +26,6 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 		app.DELETE("", destroy)
 		app.PUT("/start", start)
 		app.PUT("/stop", stop)
-
 	}
 }
 
@@ -115,14 +114,14 @@ func start(c *gin.Context) {
 		return
 	}
 
-	common.RunDelayed(common.DelayedJobContext{
+	common.RunAsync(common.AsyncJobContext{
 		User:       currentUser,
 		GinContext: c,
-		Process: func() (string, error) {
-			if errInt := swarm.StartApplication(app); errInt != nil {
-				return "", errInt
+		Process: func() (interface{}, error) {
+			if err := swarm.StartApplication(app); err != nil {
+				return "", err
 			}
-			return "started", nil
+			return app, nil
 		},
 	})
 }
@@ -135,15 +134,15 @@ func stop(c *gin.Context) {
 		return
 	}
 
-	common.RunDelayed(common.DelayedJobContext{
-		GinContext: c,
+	common.RunAsync(common.AsyncJobContext{
 		User:       currentUser,
-		Process: func() (string, error) {
+		GinContext: c,
+		Process: func() (interface{}, error) {
 			if err := swarm.StopApplication(app); err != nil {
 				common.RenderError(c, http.StatusBadRequest, "Error stoping application: "+err.Error())
 				return "", err
 			}
-			return "stoped", nil
+			return app, nil
 		},
 	})
 }
