@@ -30,7 +30,12 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 func list(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 
-	services, err := entities.GetServices(gin.H{"user_id": currentUser.ID})
+	searchOptions := gin.H{"user_id": currentUser.ID}
+	if len(c.Param("app_id")) > 0 {
+		searchOptions["application_id"] = c.Param("app_id")
+	}
+
+	services, err := entities.GetServices(searchOptions)
 	if err != nil {
 		common.RenderError(c, http.StatusInternalServerError, err.Error())
 		return

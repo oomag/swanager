@@ -23,6 +23,9 @@ var (
 
 	// LogFileName path to logfile
 	LogFileName string
+
+	// LocalSecretKey secret key to authenticate local services
+	LocalSecretKey string
 )
 
 func init() {
@@ -34,6 +37,7 @@ func init() {
 	flag.StringVar(&DatabaseDriver, "d", "mongo", "Database driver (default: mongo)")
 	flag.StringVar(&DatabaseName, "db", "swanager", "Database name (default: swanager)")
 	flag.StringVar(&MountPathPrefix, "share", "/home/da4nik/docker/data", "Mount point base path (default: /data)")
+	flag.StringVar(&LocalSecretKey, "lsk", "", "Secret key to authenticate local services (default: none, won't be authenticated)")
 	flag.Parse()
 
 	Port = getEnvValue("SWANAGER_PORT", Port)
@@ -42,6 +46,7 @@ func init() {
 	DatabaseDriver = getEnvValue("SWANAGER_DB_DRIVER", DatabaseDriver)
 	DatabaseName = getEnvValue("SWANAGER_DB_NAME", DatabaseName)
 	MountPathPrefix = getEnvValue("SWANAGER_PATH_PREFIX", MountPathPrefix)
+	LocalSecretKey = getEnvValue("SWANAGER_LOCAL_SECRET_KEY", LocalSecretKey)
 }
 
 func getEnvValue(varName string, currentValue string) string {

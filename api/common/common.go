@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/auth"
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/gin-gonic/gin"
@@ -46,6 +47,25 @@ func Auth(authenticate bool) gin.HandlerFunc {
 			return
 		}
 		c.Set("CurrentUser", user)
+		c.Next()
+	}
+}
+
+// AuthLocal - authenticate request for local services
+func AuthLocal() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if len(config.LocalSecretKey) == 0 {
+			RenderError(c, http.StatusUnauthorized, "Unauthorized")
+			c.Abort()
+			return
+		}
+
+		token := c.Request.Header.Get("Authorization")
+		if token != config.LocalSecretKey {
+			RenderError(c, http.StatusUnauthorized, "Unauthorized")
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

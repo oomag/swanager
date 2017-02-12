@@ -21,6 +21,19 @@ type Application struct {
 	ServiceIDS []string  `json:"service_ids" bson:"-"`
 }
 
+// GetApplications returns applications by request
+func GetApplications(params map[string]interface{}) ([]Application, error) {
+	session := db.GetSession()
+	defer session.Close()
+	c := getApplicationsCollection(session)
+
+	applications := make([]Application, 0)
+	if err := c.Find(params).All(&applications); err != nil {
+		return nil, err
+	}
+	return applications, nil
+}
+
 // GetApplication return application if it exists
 func GetApplication(params map[string]interface{}) (*Application, error) {
 	session := db.GetSession()

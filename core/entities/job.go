@@ -24,7 +24,7 @@ const jobsCollectionName = "jobs"
 // Job struct
 type Job struct {
 	ID         string      `json:"id" bson:"_id"`
-	UserID     string      `json:"user_id" bson:"user_id"`
+	UserID     string      `json:"_" bson:"user_id"`
 	State      string      `json:"state" bson:"state"`
 	Result     interface{} `json:"result" bson:"result"`
 	StartedAt  time.Time   `json:"started_at" bson:"started_at"`

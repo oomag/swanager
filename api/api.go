@@ -10,6 +10,7 @@ import (
 	"github.com/da4nik/swanager/api/job"
 	"github.com/da4nik/swanager/api/service"
 	"github.com/da4nik/swanager/api/session"
+	"github.com/da4nik/swanager/api/stat"
 	"github.com/da4nik/swanager/api/user"
 	"github.com/da4nik/swanager/api/ws"
 	"github.com/da4nik/swanager/config"
@@ -37,6 +38,7 @@ func Start() {
 	user.GetRoutesForRouter(apiGroup)
 	session.GetRoutesForRouter(apiGroup)
 	job.GetRoutesForRouter(apiGroup)
+	stat.GetRoutesForRouter(apiGroup)
 
 	router.Run(":" + config.Port)
 }

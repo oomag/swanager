@@ -37,6 +37,19 @@ func GetUser(email string) (*User, error) {
 	return &user, nil
 }
 
+// GetUsers returns all users
+func GetUsers(params bson.M) ([]User, error) {
+	session := db.GetSession()
+	defer session.Close()
+	c := getUsersCollection(session)
+
+	users := make([]User, 0)
+	if err := c.Find(params).All(&users); err != nil {
+		return nil, fmt.Errorf("GetUsers error: %s", err)
+	}
+	return users, nil
+}
+
 // GetUserByToken returns user by associated token
 func GetUserByToken(token string) (*User, error) {
 	session := db.GetSession()

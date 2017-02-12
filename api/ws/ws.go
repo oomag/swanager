@@ -50,7 +50,7 @@ func InitWS(router *gin.Engine) {
 func wsHandler(c *gin.Context) {
 	conn, err := wsUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		logrus.Warnf("Failed to set websocket upgrade %+v", err)
+		log().Warnf("Failed to set websocket upgrade %+v", err)
 		c.AbortWithStatus(http.StatusBadRequest)
 	}
 	defer conn.Close()
@@ -69,7 +69,7 @@ func wsHandler(c *gin.Context) {
 			break
 		}
 
-		logrus.Debugf("[%s] Got ws message type=%d %s", context.State, t, msg)
+		log().Debugf("[%s] WS message type=%d %s", context.State, t, msg)
 
 		switch context.State {
 		case stateUnauthenticated:
@@ -116,7 +116,7 @@ func (c *clientConnection) authenticate(msg []byte) {
 		return
 	}
 
-	logrus.Debugf("[WS] Authenticated, proceeding with normal mode")
+	log().Debugf("Authenticated (%s), proceeding with normal mode", c.User.Email)
 
 	c.State = stateWorking
 	incoming := make(chan entities.Service, 10)
@@ -133,7 +133,7 @@ func (c *clientConnection) authenticate(msg []byte) {
 }
 
 func (c *clientConnection) authError() {
-	logrus.Debugf("[WS] Auth error: %s", c.AuthError.Error())
+	log().Debugf("Auth error: %s", c.AuthError.Error())
 
 	c.sendAnswer(answer{
 		AnswerType: "error",
@@ -149,5 +149,5 @@ func (c *clientConnection) sendAnswer(ans answer) {
 }
 
 func log() *logrus.Entry {
-	return logrus.WithField("modeule", "api.ws")
+	return logrus.WithField("module", "api.ws")
 }
