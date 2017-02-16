@@ -47,7 +47,7 @@ func Remove(name string) error {
 }
 
 // Prune removes unused networks
-func Prune(name string) error {
+func Prune() error {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)

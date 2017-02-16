@@ -42,6 +42,29 @@ func StopApplication(app *entities.Application) error {
 	return nil
 }
 
+// StartService - starts individual service
+func StartService(service *entities.Service) error {
+	service.LoadApplication()
+
+	networkName := network.NameForDocker(&service.Application)
+	network.Create(networkName)
+
+	_, err := swarm_service.Create(swarm_service.CreateOptions{
+		Service:     service,
+		NetworkName: networkName,
+	})
+
+	return err
+}
+
+// StopService - stops/removes service
+func StopService(service *entities.Service) (err error) {
+	err = swarm_service.Remove(service)
+	network.Prune()
+
+	return
+}
+
 // GetServiceStatuses - loads service statused to service.Status field
 func GetServiceStatuses(service *entities.Service) {
 	states, err := swarm_service.Status(service)

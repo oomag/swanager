@@ -24,6 +24,8 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 		service.GET("", show)
 		service.PUT("", update)
 		service.DELETE("", delete)
+		service.PUT("/start", start)
+		service.PUT("/stop", stop)
 	}
 }
 
@@ -137,6 +139,47 @@ func show(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus})
+}
+
+func start(c *gin.Context) {
+	currentUser := common.MustGetCurrentUser(c)
+	service, err := getService(c, c.Param("service_id"))
+	if err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Service not found: "+err.Error())
+		return
+	}
+
+	common.RunAsync(common.AsyncJobContext{
+		User:       currentUser,
+		GinContext: c,
+		Process: func() (interface{}, error) {
+			if err := swarm.StartService(service); err != nil {
+				return "", err
+			}
+			return service, nil
+		},
+	})
+}
+
+func stop(c *gin.Context) {
+	currentUser := common.MustGetCurrentUser(c)
+	service, err := getService(c, c.Param("service_id"))
+	if err != nil {
+		common.RenderError(c, http.StatusBadRequest, "Service not found: "+err.Error())
+		return
+	}
+
+	common.RunAsync(common.AsyncJobContext{
+		User:       currentUser,
+		GinContext: c,
+		Process: func() (interface{}, error) {
+			if err := swarm.StopService(service); err != nil {
+				common.RenderError(c, http.StatusBadRequest, "Error stoping service: "+err.Error())
+				return "", err
+			}
+			return service, nil
+		},
+	})
 }
 
 // getService returns service by it's id and current user id
