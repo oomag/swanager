@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"hash/crc32"
@@ -24,6 +25,12 @@ type ServiceStatusStruct struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
+// ServiceEnvVariable - represents name value struct
+type ServiceEnvVariable struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // Service describes service entity
 type Service struct {
 	ID            string                `bson:"_id,omitempty" json:"id"`
@@ -32,10 +39,11 @@ type Service struct {
 	NSName        string                `json:"ns_name" bson:"ns_name"`
 	Replicas      *uint64               `json:"replicas"`
 	Parallelism   uint64                `json:"parallelism"`
-	Status        []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
+	EnvVariables  []ServiceEnvVariable  `json:"env" bson:"env_vars"`
 	ApplicationID string                `bson:"application_id,omitempty" json:"application_id,omitempty"`
-	Application   Application           `bson:"-" json:"-"`
 	UserID        string                `bson:"user_id" json:"-"`
+	Application   Application           `bson:"-" json:"-"`
+	Status        []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
 }
 
 // GetService return service if it exists
@@ -84,6 +92,18 @@ func (s *Service) UpdateParams(newService *Service) error {
 	s.Image = newService.Image
 	s.Replicas = newService.Replicas
 	s.Parallelism = newService.Parallelism
+
+	var variables = make([]ServiceEnvVariable, 0)
+	for _, variable := range newService.EnvVariables {
+		if len(variable.Name) > 0 && len(variable.Value) > 0 {
+			variables = append(variables, ServiceEnvVariable{
+				Name:  prepareEnvVariableName(variable.Name),
+				Value: variable.Value,
+			})
+		}
+	}
+	s.EnvVariables = variables
+
 	return nil
 }
 
@@ -164,6 +184,12 @@ func nsName(service *Service) string {
 	crc32q := crc32.MakeTable(0xD5828281)
 
 	return fmt.Sprintf("%s-%s-%08x", app, serv, crc32.Checksum([]byte(name), crc32q))
+}
+
+func prepareEnvVariableName(name string) (result string) {
+	result = strings.ToUpper(name)
+	result = strings.Replace(result, " ", "_", -1)
+	return
 }
 
 func logService() *logrus.Entry {

@@ -45,6 +45,7 @@ func Create(opts CreateOptions) (string, error) {
 	containerSpec := swarm.ContainerSpec{
 		Image:  opts.Service.Image,
 		Mounts: mounts,
+		Env:    prepareEnvVars(opts.Service),
 	}
 
 	updateConfig := swarm.UpdateConfig{
@@ -169,6 +170,13 @@ func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
 	}
 
 	return result, nil
+}
+
+func prepareEnvVars(service *entities.Service) (vars []string) {
+	for _, envVar := range service.EnvVariables {
+		vars = append(vars, fmt.Sprintf("%s=%s", envVar.Name, envVar.Value))
+	}
+	return
 }
 
 func getMountPathPrefix() string {
