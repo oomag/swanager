@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -72,6 +73,10 @@ func Create(opts CreateOptions) (string, error) {
 			Replicated: &swarm.ReplicatedService{Replicas: opts.Service.Replicas},
 		},
 		UpdateConfig: &updateConfig,
+		EndpointSpec: &swarm.EndpointSpec{
+			Mode:  swarm.ResolutionModeVIP,
+			Ports: preparePorts(opts.Service),
+		},
 	}
 
 	serviceCreateOptions := types.ServiceCreateOptions{}
@@ -177,6 +182,28 @@ func prepareEnvVars(service *entities.Service) (vars []string) {
 		vars = append(vars, fmt.Sprintf("%s=%s", envVar.Name, envVar.Value))
 	}
 	return
+}
+
+func preparePorts(service *entities.Service) (ports []swarm.PortConfig) {
+
+	for _, port := range service.PublishedPorts {
+		ports = append(ports, swarm.PortConfig{
+			Name:          "sdfkjsdf",
+			Protocol:      stringToProtocol(port.Protocol),
+			TargetPort:    port.Internal,
+			PublishedPort: port.External,
+			PublishMode:   swarm.PortConfigPublishModeIngress,
+		})
+	}
+	return
+}
+
+func stringToProtocol(protocol string) swarm.PortConfigProtocol {
+	switch strings.ToLower(protocol) {
+	case "udp":
+		return swarm.PortConfigProtocolUDP
+	}
+	return swarm.PortConfigProtocolTCP
 }
 
 func getMountPathPrefix() string {

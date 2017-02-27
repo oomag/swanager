@@ -31,19 +31,27 @@ type ServiceEnvVariable struct {
 	Value string `json:"value"`
 }
 
+// ServicePublishedPort - represents serivce publishing port
+type ServicePublishedPort struct {
+	Internal uint32 `json:"internal"`
+	External uint32 `json:"external"`
+	Protocol string `json:"protocol"`
+}
+
 // Service describes service entity
 type Service struct {
-	ID            string                `bson:"_id,omitempty" json:"id"`
-	Name          string                `json:"name"`
-	Image         string                `json:"image"`
-	NSName        string                `json:"ns_name" bson:"ns_name"`
-	Replicas      *uint64               `json:"replicas"`
-	Parallelism   uint64                `json:"parallelism"`
-	EnvVariables  []ServiceEnvVariable  `json:"env" bson:"env_vars"`
-	ApplicationID string                `bson:"application_id,omitempty" json:"application_id,omitempty"`
-	UserID        string                `bson:"user_id" json:"-"`
-	Application   Application           `bson:"-" json:"-"`
-	Status        []ServiceStatusStruct `bson:"-" json:"status,omitempty"`
+	ID             string                 `bson:"_id,omitempty" json:"id"`
+	Name           string                 `json:"name"`
+	Image          string                 `json:"image"`
+	NSName         string                 `json:"ns_name" bson:"ns_name"`
+	Replicas       *uint64                `json:"replicas"`
+	Parallelism    uint64                 `json:"parallelism"`
+	EnvVariables   []ServiceEnvVariable   `json:"env" bson:"env_vars"`
+	PublishedPorts []ServicePublishedPort `json:"published_ports" bson:"published_ports"`
+	ApplicationID  string                 `bson:"application_id,omitempty" json:"application_id,omitempty"`
+	UserID         string                 `bson:"user_id" json:"-"`
+	Application    Application            `bson:"-" json:"-"`
+	Status         []ServiceStatusStruct  `bson:"-" json:"status,omitempty"`
 }
 
 // GetService return service if it exists
@@ -103,6 +111,18 @@ func (s *Service) UpdateParams(newService *Service) error {
 		}
 	}
 	s.EnvVariables = variables
+
+	var ports = make([]ServicePublishedPort, 0)
+	for _, port := range newService.PublishedPorts {
+		if port.Internal > 0 && port.External > 0 {
+			ports = append(ports, ServicePublishedPort{
+				Internal: port.Internal,
+				External: port.External,
+				Protocol: port.Protocol,
+			})
+		}
+	}
+	s.PublishedPorts = ports
 
 	return nil
 }
