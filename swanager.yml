@@ -1,0 +1,32 @@
+version: "3"
+
+services:
+
+  swanager:
+    image: swanager:latest
+    environment:
+      SWANAGER_MONGO_URL: mongodb://mongo/swanager
+      SWANAGER_LOCAL_SECRET_KEY: 01b82023f9ea0a124a12ec85e323b5c43ac3dcadae525634ac49564239192b6b9bec03a6f985f977c77c4e28e9922eb13e18a35f0a73cb2418c84d1abf131415
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - swanager
+    depends_on:
+      - mongo
+    ports:
+      - "4945:4945"
+    deploy:
+      replicas: 1
+
+
+  mongo:
+    image: mongo:3.4
+#    Store mongodb storage
+#    volumes:
+#      - /tmp/swanager/mongo:/data/db
+    networks:
+      - swanager
+
+networks:
+  swanager:
+    driver: overlay
