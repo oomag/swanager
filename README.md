@@ -1,5 +1,15 @@
 # swanager
 
+## Development
+
+Golang (1.7.5+) needs to be [installed](https://golang.org/doc/install) and [set up](https://golang.org/doc/code.html#Workspaces)
+
+```bash
+$ git clone git@github.com:dokkur/swanager.git && cd swanager
+$ go get -u
+$ go run swanager.go
+```
+
 ## Build
 
 Simple:
@@ -20,7 +30,6 @@ Param | Default value | Description
 TAG | latest | Tag of resulting image `swanager:TAG`
 DELETE_BUILD_IMAGE | 1 | Whether of not, delete golang build image
 GOLANG_BUILD_IMAGE | golang:1.8 | Golang build image
-
 
 ## Run
 
