@@ -82,6 +82,8 @@ func update(c *gin.Context) {
 	service.UpdateParams(&newService)
 	service.Save()
 
+	swarm.UpdateService(service)
+
 	serviceStatus, err := swarm_service.Status(service)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"service": service, "status_error": err})
@@ -126,7 +128,11 @@ func create(c *gin.Context) {
 func show(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 
-	service, err := entities.GetService(gin.H{"user_id": currentUser.ID})
+	service, err := entities.GetService(gin.H{
+		"user_id": currentUser.ID,
+		"_id":     c.Param("service_id"),
+	})
+
 	if err != nil {
 		common.RenderError(c, http.StatusNotFound, "Service not found")
 		return

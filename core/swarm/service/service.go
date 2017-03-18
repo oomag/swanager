@@ -25,60 +25,22 @@ type StatusStruct struct {
 	Timestamp time.Time
 }
 
-// CreateOptions service create params
-type CreateOptions struct {
+// SpecOptions service create params
+type SpecOptions struct {
 	Service     *entities.Service
 	NetworkName string
+	Index       uint64
 }
 
 // Create creates swarm service form Service entity
-func Create(opts CreateOptions) (string, error) {
+func Create(opts SpecOptions) (string, error) {
 	cli, err := client.NewEnvClient()
 	if err != nil {
 		panic(err)
 	}
 	defer cli.Close()
 
-	opts.Service.LoadApplication()
-
-	mounts, _ := getServiceMounts(opts.Service)
-
-	containerSpec := swarm.ContainerSpec{
-		Image:  opts.Service.Image,
-		Mounts: mounts,
-		Env:    prepareEnvVars(opts.Service),
-	}
-
-	updateConfig := swarm.UpdateConfig{
-		Parallelism:     opts.Service.Parallelism,
-		FailureAction:   "pause",
-		MaxFailureRatio: 0.5,
-	}
-
-	serviceSpec := swarm.ServiceSpec{
-		Annotations: swarm.Annotations{
-			Name: opts.Service.NSName,
-			Labels: map[string]string{
-				"swanager_id":    opts.Service.ID,
-				"application_id": opts.Service.Application.ID,
-			},
-		},
-		TaskTemplate: swarm.TaskSpec{
-			ContainerSpec: containerSpec,
-			Networks: []swarm.NetworkAttachmentConfig{
-				swarm.NetworkAttachmentConfig{Target: opts.NetworkName},
-			},
-		},
-		Mode: swarm.ServiceMode{
-			Replicated: &swarm.ReplicatedService{Replicas: opts.Service.Replicas},
-		},
-		UpdateConfig: &updateConfig,
-		EndpointSpec: &swarm.EndpointSpec{
-			Mode:  swarm.ResolutionModeVIP,
-			Ports: preparePorts(opts.Service),
-		},
-	}
-
+	serviceSpec := getServiceSpec(opts)
 	serviceCreateOptions := types.ServiceCreateOptions{}
 
 	log().WithField("spec", fmt.Sprintf("%+v", serviceSpec)).Debug("Creating swarm service")
@@ -94,6 +56,30 @@ func Create(opts CreateOptions) (string, error) {
 	}
 
 	return responce.ID, nil
+}
+
+// Update - updates existing service
+func Update(opts SpecOptions) error {
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		panic(err)
+	}
+	defer cli.Close()
+
+	serviceSpec := getServiceSpec(opts)
+	serviceUpdateOptions := types.ServiceUpdateOptions{}
+
+	responce, err := cli.ServiceUpdate(context.Background(), opts.Service.NSName, swarm.Version{Index: opts.Index}, serviceSpec, serviceUpdateOptions)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(responce.Warnings) > 0 {
+		log().Debug("Warnings:")
+		log().Debugf("%+v", responce.Warnings)
+	}
+
+	return nil
 }
 
 // Remove removes service
@@ -146,8 +132,49 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 			Timestamp: task.Status.Timestamp,
 		})
 	}
-
 	return result, nil
+}
+
+func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
+	opts.Service.LoadApplication()
+
+	mounts, _ := getServiceMounts(opts.Service)
+
+	containerSpec := swarm.ContainerSpec{
+		Image:  opts.Service.Image,
+		Mounts: mounts,
+		Env:    prepareEnvVars(opts.Service),
+	}
+
+	updateConfig := swarm.UpdateConfig{
+		Parallelism:     opts.Service.Parallelism,
+		FailureAction:   "pause",
+		MaxFailureRatio: 0.5,
+	}
+
+	return swarm.ServiceSpec{
+		Annotations: swarm.Annotations{
+			Name: opts.Service.NSName,
+			Labels: map[string]string{
+				"swanager_id":    opts.Service.ID,
+				"application_id": opts.Service.Application.ID,
+			},
+		},
+		TaskTemplate: swarm.TaskSpec{
+			ContainerSpec: containerSpec,
+			Networks: []swarm.NetworkAttachmentConfig{
+				swarm.NetworkAttachmentConfig{Target: opts.NetworkName},
+			},
+		},
+		Mode: swarm.ServiceMode{
+			Replicated: &swarm.ReplicatedService{Replicas: opts.Service.Replicas},
+		},
+		UpdateConfig: &updateConfig,
+		EndpointSpec: &swarm.EndpointSpec{
+			Mode:  swarm.ResolutionModeVIP,
+			Ports: preparePorts(opts.Service),
+		},
+	}
 }
 
 // getServiceMounts returns mount struct for creating new service

@@ -12,6 +12,8 @@ import (
 	"github.com/docker/docker/client"
 )
 
+const serviceStatusNotExists = "not_exists"
+
 // StartApplication starts a whole application
 func StartApplication(app *entities.Application) error {
 	app.LoadServices()
@@ -21,7 +23,7 @@ func StartApplication(app *entities.Application) error {
 	network.Create(networkName)
 
 	for _, service := range app.Services {
-		swarm_service.Create(swarm_service.CreateOptions{
+		swarm_service.Create(swarm_service.SpecOptions{
 			Service:     &service,
 			NetworkName: networkName,
 		})
@@ -49,12 +51,33 @@ func StartService(service *entities.Service) error {
 	networkName := network.NameForDocker(&service.Application)
 	network.Create(networkName)
 
-	_, err := swarm_service.Create(swarm_service.CreateOptions{
+	_, err := swarm_service.Create(swarm_service.SpecOptions{
 		Service:     service,
 		NetworkName: networkName,
 	})
 
 	return err
+}
+
+// UpdateService - updates running service
+func UpdateService(service *entities.Service) error {
+	if !ServiceExists(service) {
+		return nil
+	}
+
+	serviceInspection, _ := swarm_service.Inspect(service)
+
+	service.LoadApplication()
+	networkName := network.NameForDocker(&service.Application)
+
+	// spew.Dump(serviceInspection)
+	// spew.Dump(serviceInspection.Meta.Version.Index + 1)
+
+	return swarm_service.Update(swarm_service.SpecOptions{
+		Service:     service,
+		NetworkName: networkName,
+		Index:       serviceInspection.Meta.Version.Index,
+	})
 }
 
 // StopService - stops/removes service
@@ -65,11 +88,23 @@ func StopService(service *entities.Service) (err error) {
 	return
 }
 
+// ServiceExists - detects wether or not service exists in swarm
+func ServiceExists(service *entities.Service) bool {
+	GetServiceStatuses(service)
+
+	// if service is not running, just return
+	if len(service.Status) == 1 &&
+		service.Status[0].Status == serviceStatusNotExists {
+		return false
+	}
+	return true
+}
+
 // GetServiceStatuses - loads service statused to service.Status field
 func GetServiceStatuses(service *entities.Service) {
 	states, err := swarm_service.Status(service)
 	if err != nil {
-		service.AddServiceStatus(entities.ServiceStatusStruct{Status: "not_exists"})
+		service.AddServiceStatus(entities.ServiceStatusStruct{Status: serviceStatusNotExists})
 		return
 	}
 
