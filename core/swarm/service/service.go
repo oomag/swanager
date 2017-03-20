@@ -3,13 +3,13 @@ package service
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm/image"
 	"github.com/da4nik/swanager/core/swarm/task"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
@@ -138,7 +138,7 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
 	opts.Service.LoadApplication()
 
-	mounts, _ := getServiceMounts(opts.Service)
+	mounts := getServiceVolumes(opts.Service)
 
 	containerSpec := swarm.ContainerSpec{
 		Image:  opts.Service.Image,
@@ -177,32 +177,50 @@ func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
 	}
 }
 
-// getServiceMounts returns mount struct for creating new service
-func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
+func getServiceVolumes(service *entities.Service) []mount.Mount {
+	service.LoadApplication()
+
 	result := make([]mount.Mount, 0)
-	vols, err := image.Volumes(service.Image)
-	if err != nil {
-		return result, err
-	}
+	for _, vol := range service.Volumes {
+		sourcePath := getMountPathPrefix() + vol
+		os.MkdirAll(sourcePath, 0777)
 
-	volumeOptions := mount.VolumeOptions{
-		Labels: map[string]string{
-			"application_id": service.Application.ID,
-			"service_id":     service.ID,
-		},
-	}
-
-	for _, vol := range *vols {
 		result = append(result, mount.Mount{
-			Type:          "bind",
-			Source:        getMountPathPrefix() + vol,
-			Target:        vol,
-			VolumeOptions: &volumeOptions,
+			Type:     mount.TypeBind,
+			Source:   getMountPathPrefix() + vol,
+			Target:   vol,
+			ReadOnly: false,
 		})
 	}
-
-	return result, nil
+	return result
 }
+
+// getServiceMounts returns mount struct based on image volumes
+// func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
+// 	result := make([]mount.Mount, 0)
+// 	vols, err := image.Volumes(service.Image)
+// 	if err != nil {
+// 		return result, err
+// 	}
+//
+// 	volumeOptions := mount.VolumeOptions{
+// 		Labels: map[string]string{
+// 			"application_id": service.Application.ID,
+// 			"service_id":     service.ID,
+// 		},
+// 	}
+//
+// 	for _, vol := range *vols {
+// 		result = append(result, mount.Mount{
+// 			Type:          "bind",
+// 			Source:        getMountPathPrefix() + vol,
+// 			Target:        vol,
+// 			VolumeOptions: &volumeOptions,
+// 		})
+// 	}
+//
+// 	return result, nil
+// }
 
 func prepareEnvVars(service *entities.Service) (vars []string) {
 	for _, envVar := range service.EnvVariables {
@@ -215,7 +233,7 @@ func preparePorts(service *entities.Service) (ports []swarm.PortConfig) {
 
 	for _, port := range service.PublishedPorts {
 		ports = append(ports, swarm.PortConfig{
-			Name:          "sdfkjsdf",
+			Name:          "swanager_port",
 			Protocol:      stringToProtocol(port.Protocol),
 			TargetPort:    port.Internal,
 			PublishedPort: port.External,

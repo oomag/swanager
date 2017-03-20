@@ -50,6 +50,7 @@ type Service struct {
 	PublishedPorts []ServicePublishedPort `json:"published_ports" bson:"published_ports"`
 	ApplicationID  string                 `bson:"application_id,omitempty" json:"application_id,omitempty"`
 	UserID         string                 `bson:"user_id" json:"-"`
+	Volumes        []string               `bson:"volumes" json:"volumes"`
 	Application    Application            `bson:"-" json:"-"`
 	Status         []ServiceStatusStruct  `bson:"-" json:"status,omitempty"`
 }
@@ -100,6 +101,14 @@ func (s *Service) UpdateParams(newService *Service) error {
 	s.Image = newService.Image
 	s.Replicas = newService.Replicas
 	s.Parallelism = newService.Parallelism
+
+	var volumes = make([]string, 0)
+	for _, vol := range newService.Volumes {
+		if len(vol) != 0 {
+			volumes = append(volumes, vol)
+		}
+	}
+	s.Volumes = volumes
 
 	var variables = make([]ServiceEnvVariable, 0)
 	for _, variable := range newService.EnvVariables {
