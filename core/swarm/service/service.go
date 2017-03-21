@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -182,12 +183,12 @@ func getServiceVolumes(service *entities.Service) []mount.Mount {
 
 	result := make([]mount.Mount, 0)
 	for _, vol := range service.Volumes {
-		sourcePath := getMountPathPrefix() + vol
+		sourcePath := filepath.Join(getMountPathPrefix(service), vol)
 		os.MkdirAll(sourcePath, 0777)
 
 		result = append(result, mount.Mount{
 			Type:     mount.TypeBind,
-			Source:   getMountPathPrefix() + vol,
+			Source:   sourcePath,
 			Target:   vol,
 			ReadOnly: false,
 		})
@@ -251,8 +252,8 @@ func stringToProtocol(protocol string) swarm.PortConfigProtocol {
 	return swarm.PortConfigProtocolTCP
 }
 
-func getMountPathPrefix() string {
-	return config.MountPathPrefix
+func getMountPathPrefix(service *entities.Service) string {
+	return filepath.Join(config.MountPathPrefix, service.UserID)
 }
 
 func log() *logrus.Entry {
