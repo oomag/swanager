@@ -85,7 +85,7 @@ func (c *clientConnection) listen() {
 	for {
 		select {
 		case service := <-c.Incoming:
-			log().WithField("UserID", c.User.ID).Debugf("Senging to client %s", service.NSName)
+			log().WithField("UserID", c.User.ID).Debugf("Sending to client %s", service.NSName)
 			if service.Name == "" {
 				return
 			}

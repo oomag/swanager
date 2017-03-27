@@ -12,6 +12,7 @@ import (
 	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/da4nik/swanager/core/swarm/task"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
@@ -178,6 +179,20 @@ func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
 	}
 }
 
+// Update service in db with currently running service params
+// e.g. Autoassigned published ports
+func updateWithRunningSpec(service *entities.Service) error {
+	running, err := Inspect(service)
+	if err != nil {
+		return err
+	}
+
+	// runningPorts := running.
+	spew.Dump(running)
+
+	return nil
+}
+
 func getServiceVolumes(service *entities.Service) []mount.Mount {
 	service.LoadApplication()
 
@@ -195,33 +210,6 @@ func getServiceVolumes(service *entities.Service) []mount.Mount {
 	}
 	return result
 }
-
-// getServiceMounts returns mount struct based on image volumes
-// func getServiceMounts(service *entities.Service) ([]mount.Mount, error) {
-// 	result := make([]mount.Mount, 0)
-// 	vols, err := image.Volumes(service.Image)
-// 	if err != nil {
-// 		return result, err
-// 	}
-//
-// 	volumeOptions := mount.VolumeOptions{
-// 		Labels: map[string]string{
-// 			"application_id": service.Application.ID,
-// 			"service_id":     service.ID,
-// 		},
-// 	}
-//
-// 	for _, vol := range *vols {
-// 		result = append(result, mount.Mount{
-// 			Type:          "bind",
-// 			Source:        getMountPathPrefix() + vol,
-// 			Target:        vol,
-// 			VolumeOptions: &volumeOptions,
-// 		})
-// 	}
-//
-// 	return result, nil
-// }
 
 func prepareEnvVars(service *entities.Service) (vars []string) {
 	for _, envVar := range service.EnvVariables {

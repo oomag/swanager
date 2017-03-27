@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"math/rand"
 	"strings"
 	"time"
 
@@ -83,6 +84,52 @@ func GetServices(params map[string]interface{}) ([]Service, error) {
 	return services, nil
 }
 
+// MustGetPublicPort returns random free public port in 10000 - 60000
+func MustGetPublicPort() uint32 {
+	existingPorts := getPublishedPorts()
+	var port uint32
+	for {
+		port = uint32(10000 + 50000*(rand.Float64()))
+		if _, ok := existingPorts[port]; ok {
+			continue
+		}
+		break
+	}
+	return port
+}
+
+// PublicPortExists checks if public port exists
+func PublicPortExists(port uint32) bool {
+	existingPorts := getPublishedPorts()
+	_, exists := existingPorts[port]
+	return exists
+}
+
+type publishedPorts struct {
+	Ports []ServicePublishedPort `bson:"published_ports"`
+}
+
+func getPublishedPorts() map[uint32]bool {
+	session := db.GetSession()
+	defer session.Close()
+
+	c := getServicesCollection(session)
+	res := make([]publishedPorts, 0)
+	if err := c.Find(bson.M{}).
+		Select(bson.M{"published_ports.external": 1, "_id": 0}).
+		All(&res); err != nil {
+		panic(err)
+	}
+
+	ports := make(map[uint32]bool, 0)
+	for _, pubPort := range res {
+		for _, port := range pubPort.Ports {
+			ports[port.External] = true
+		}
+	}
+	return ports
+}
+
 // Delete - removed entity from database
 func (s *Service) Delete() error {
 	session := db.GetSession()
@@ -123,13 +170,22 @@ func (s *Service) UpdateParams(newService *Service) error {
 
 	var ports = make([]ServicePublishedPort, 0)
 	for _, port := range newService.PublishedPorts {
-		if port.Internal > 0 && port.External > 0 {
-			ports = append(ports, ServicePublishedPort{
-				Internal: port.Internal,
-				External: port.External,
-				Protocol: port.Protocol,
-			})
+		if port.Internal == 0 {
+			continue
 		}
+
+		// Don't save empty or privileged internal port.
+		externalPort := port.External
+		// TODO: Return soft error if port is already in use of less then 1024
+		if externalPort <= 1024 || PublicPortExists(externalPort) {
+			externalPort = MustGetPublicPort()
+		}
+
+		ports = append(ports, ServicePublishedPort{
+			Internal: port.Internal,
+			External: externalPort,
+			Protocol: port.Protocol,
+		})
 	}
 	s.PublishedPorts = ports
 
