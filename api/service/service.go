@@ -117,6 +117,8 @@ func create(c *gin.Context) {
 		}
 	}
 
+	service.UpdateParams(&service)
+
 	if err := service.Save(); err != nil {
 		common.RenderError(c, http.StatusUnprocessableEntity, err)
 		return
