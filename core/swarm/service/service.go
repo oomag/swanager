@@ -166,6 +166,12 @@ func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
 		},
 		TaskTemplate: swarm.TaskSpec{
 			ContainerSpec: containerSpec,
+			Resources: &swarm.ResourceRequirements{
+				Limits: &swarm.Resources{
+					NanoCPUs:    0, // CPU ratio * 10^9 :)
+					MemoryBytes: 0, // in bytes
+				},
+			},
 			Networks: []swarm.NetworkAttachmentConfig{
 				swarm.NetworkAttachmentConfig{Target: opts.NetworkName},
 			},
