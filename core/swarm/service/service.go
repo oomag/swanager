@@ -25,6 +25,7 @@ type StatusStruct struct {
 	Node      string
 	Status    string
 	Timestamp time.Time
+	Error     string
 }
 
 // SpecOptions service create params
@@ -132,6 +133,7 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 			Node:      task.NodeID,
 			Status:    string(task.Status.State),
 			Timestamp: task.Status.Timestamp,
+			Error:     task.Status.Err,
 		})
 	}
 	return result, nil

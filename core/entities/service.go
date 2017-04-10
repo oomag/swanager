@@ -24,6 +24,7 @@ type ServiceStatusStruct struct {
 	Node      string    `json:"node"`
 	Status    string    `json:"status"`
 	Timestamp time.Time `json:"timestamp"`
+	Error     string    `json:"error"`
 }
 
 // ServiceEnvVariable - represents name value struct

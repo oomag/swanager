@@ -114,6 +114,7 @@ func GetServiceStatuses(service *entities.Service) {
 			Node:      state.Node,
 			Status:    state.Status,
 			Timestamp: state.Timestamp,
+			Error:     state.Error,
 		})
 	}
 }
