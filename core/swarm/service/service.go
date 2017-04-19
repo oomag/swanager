@@ -249,7 +249,7 @@ func stringToProtocol(protocol string) swarm.PortConfigProtocol {
 }
 
 func getMountPathPrefix(service *entities.Service) string {
-	return filepath.Join(config.MountPathPrefix, service.UserID)
+	return filepath.Join(config.MountPathPrefix, service.ApplicationID, service.NSName)
 }
 
 func log() *logrus.Entry {
