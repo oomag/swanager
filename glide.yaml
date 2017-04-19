@@ -1,0 +1,25 @@
+package: github.com/da4nik/swanager
+import:
+- package: github.com/Sirupsen/logrus
+  version: ^0.11.5
+- package: github.com/davecgh/go-spew
+  version: ^1.1.0
+  subpackages:
+  - spew
+- package: github.com/docker/docker
+  version: ^17.5.0-ce-rc1
+  subpackages:
+  - api/types
+  - api/types/events
+  - api/types/filters
+  - api/types/mount
+  - api/types/swarm
+  - client
+- package: github.com/gin-gonic/gin
+  version: ^1.1.4
+- package: github.com/gorilla/websocket
+  version: ^1.1.0
+- package: github.com/rogpeppe/fastuuid
+- package: gopkg.in/mgo.v2
+  subpackages:
+  - bson

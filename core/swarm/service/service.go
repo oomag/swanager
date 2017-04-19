@@ -92,6 +92,7 @@ func Remove(service *entities.Service) error {
 	if err != nil {
 		panic(err)
 	}
+
 	defer cli.Close()
 
 	err = cli.ServiceRemove(context.Background(), service.NSName)
@@ -111,7 +112,7 @@ func Inspect(service *entities.Service) (*swarm.Service, error) {
 	}
 	defer cli.Close()
 
-	serviceInspection, _, err := cli.ServiceInspectWithRaw(context.Background(), service.NSName)
+	serviceInspection, _, err := cli.ServiceInspectWithRaw(context.Background(), service.NSName, types.ServiceInspectOptions{InsertDefaults: true})
 	if err != nil {
 		return nil, err
 	}
