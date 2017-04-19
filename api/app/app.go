@@ -32,11 +32,30 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 func list(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 
+	services, err := entities.GetServices(gin.H{"user_id": currentUser.ID})
+	if err != nil {
+		common.RenderError(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	appServices := make(map[string][]string)
+	for _, service := range services {
+		if _, exists := appServices[service.ApplicationID]; !exists {
+			appServices[service.ApplicationID] = make([]string, 0)
+		}
+		appServices[service.ApplicationID] = append(appServices[service.ApplicationID], service.ID)
+	}
+
 	applications, err := currentUser.GetApplications()
 	if err != nil {
 		common.RenderError(c, http.StatusUnprocessableEntity, err)
 		return
 	}
+
+	for index := range applications {
+		applications[index].ServiceIDS = appServices[applications[index].ID]
+	}
+
 	c.JSON(http.StatusOK, gin.H{"applications": applications})
 }
 

@@ -17,8 +17,8 @@ type Application struct {
 	ID         string    `json:"id" bson:"_id,omitempty"`
 	Name       string    `json:"name"`
 	UserID     string    `json:"-" bson:"user_id"`
-	Services   []Service `json:"services" bson:"-"`
-	ServiceIDS []string  `json:"service_ids" bson:"-"`
+	Services   []Service `json:"services,omitempty" bson:"-"`
+	ServiceIDS []string  `json:"service_ids,omitempty" bson:"-"`
 }
 
 // GetApplications returns applications by request
