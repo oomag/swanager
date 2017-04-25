@@ -87,7 +87,7 @@ func GetServices(params map[string]interface{}) ([]Service, error) {
 
 // MustGetPublicPort returns random free public port in 10000 - 60000
 func MustGetPublicPort() uint32 {
-	existingPorts := getPublishedPorts()
+	existingPorts := getPublishedPorts(bson.M{})
 	var port uint32
 	for {
 		port = uint32(10000 + 50000*(rand.Float64()))
@@ -100,8 +100,8 @@ func MustGetPublicPort() uint32 {
 }
 
 // PublicPortExists checks if public port exists
-func PublicPortExists(port uint32) bool {
-	existingPorts := getPublishedPorts()
+func PublicPortExists(port uint32, params map[string]interface{}) bool {
+	existingPorts := getPublishedPorts(params)
 	_, exists := existingPorts[port]
 	return exists
 }
@@ -110,13 +110,13 @@ type publishedPorts struct {
 	Ports []ServicePublishedPort `bson:"published_ports"`
 }
 
-func getPublishedPorts() map[uint32]bool {
+func getPublishedPorts(params map[string]interface{}) map[uint32]bool {
 	session := db.GetSession()
 	defer session.Close()
 
 	c := getServicesCollection(session)
 	res := make([]publishedPorts, 0)
-	if err := c.Find(bson.M{}).
+	if err := c.Find(params).
 		Select(bson.M{"published_ports.external": 1, "_id": 0}).
 		All(&res); err != nil {
 		panic(err)
@@ -144,7 +144,7 @@ func (s *Service) Delete() error {
 }
 
 // UpdateParams - updates service entity with other service entity
-func (s *Service) UpdateParams(newService *Service) error {
+func (s *Service) UpdateParams(newService *Service) (errors []string) {
 	s.Name = newService.Name
 	s.Image = newService.Image
 	s.Replicas = newService.Replicas
@@ -171,15 +171,17 @@ func (s *Service) UpdateParams(newService *Service) error {
 
 	var ports = make([]ServicePublishedPort, 0)
 	for _, port := range newService.PublishedPorts {
-		if port.Internal == 0 {
+		if port.Internal == 0 || port.Internal > 65535 {
+			errors = append(errors, fmt.Sprintf("Internal port (%d) is 0 or greather than 65535", port.Internal))
 			continue
 		}
 
 		// Don't save empty or privileged internal port.
 		externalPort := port.External
-		// TODO: Return soft error if port is already in use of less then 1024
-		if externalPort <= 1024 || PublicPortExists(externalPort) {
+		if externalPort <= 1024 ||
+			PublicPortExists(externalPort, bson.M{"_id": bson.M{"$ne": s.ID}}) {
 			externalPort = MustGetPublicPort()
+			errors = append(errors, fmt.Sprintf("External port (%d) less than 1024 or exists, changed to %d", port.External, externalPort))
 		}
 
 		ports = append(ports, ServicePublishedPort{
@@ -190,7 +192,7 @@ func (s *Service) UpdateParams(newService *Service) error {
 	}
 	s.PublishedPorts = ports
 
-	return nil
+	return
 }
 
 // Save saves user entity in db

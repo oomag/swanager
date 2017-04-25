@@ -79,18 +79,18 @@ func update(c *gin.Context) {
 		return
 	}
 
-	service.UpdateParams(&newService)
+	notes := service.UpdateParams(&newService)
 	service.Save()
 
 	swarm.UpdateService(service)
 
 	serviceStatus, err := swarm_service.Status(service)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"service": service, "status_error": err})
+		c.JSON(http.StatusOK, gin.H{"service": service, "status_error": err, "notes": notes})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus})
+	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus, "notes": notes})
 }
 
 func create(c *gin.Context) {
