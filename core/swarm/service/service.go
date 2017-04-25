@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -146,9 +147,10 @@ func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
 	mounts := getServiceVolumes(opts.Service)
 
 	containerSpec := swarm.ContainerSpec{
-		Image:  opts.Service.Image,
-		Mounts: mounts,
-		Env:    prepareEnvVars(opts.Service),
+		Image:   opts.Service.Image,
+		Mounts:  mounts,
+		Env:     prepareEnvVars(opts.Service),
+		Command: prepareCommand(opts.Service),
 	}
 
 	updateConfig := swarm.UpdateConfig{
@@ -218,6 +220,13 @@ func getServiceVolumes(service *entities.Service) []mount.Mount {
 		})
 	}
 	return result
+}
+
+func prepareCommand(service *entities.Service) []string {
+	if service.Command == "" {
+		return make([]string, 0)
+	}
+	return regexp.MustCompile("\\s+").Split(service.Command, -1)
 }
 
 func prepareEnvVars(service *entities.Service) (vars []string) {

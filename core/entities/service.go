@@ -52,6 +52,7 @@ type Service struct {
 	ID             string                 `bson:"_id,omitempty" json:"id"`
 	Name           string                 `json:"name"`
 	Image          string                 `json:"image"`
+	Command        string                 `json:"command"`
 	NSName         string                 `json:"ns_name" bson:"ns_name"`
 	Replicas       *uint64                `json:"replicas"`
 	Parallelism    uint64                 `json:"parallelism"`
@@ -154,6 +155,7 @@ func (s *Service) Delete() error {
 func (s *Service) UpdateParams(newService *Service) (errors []string) {
 	s.Name = newService.Name
 	s.Image = newService.Image
+	s.Command = newService.Command
 	s.Replicas = newService.Replicas
 	s.Parallelism = newService.Parallelism
 
