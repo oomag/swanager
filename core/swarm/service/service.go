@@ -207,13 +207,13 @@ func getServiceVolumes(service *entities.Service) []mount.Mount {
 
 	result := make([]mount.Mount, 0)
 	for _, vol := range service.Volumes {
-		sourcePath := filepath.Join(getMountPathPrefix(service), vol)
+		sourcePath := filepath.Join(getMountPathPrefix(service, vol.AppWide), vol.Backend)
 		os.MkdirAll(sourcePath, 0777)
 
 		result = append(result, mount.Mount{
 			Type:     mount.TypeBind,
 			Source:   sourcePath,
-			Target:   vol,
+			Target:   vol.Service,
 			ReadOnly: false,
 		})
 	}
@@ -249,8 +249,13 @@ func stringToProtocol(protocol string) swarm.PortConfigProtocol {
 	return swarm.PortConfigProtocolTCP
 }
 
-func getMountPathPrefix(service *entities.Service) string {
-	return filepath.Join(config.MountPathPrefix, service.ApplicationID, service.NSName)
+func getMountPathPrefix(service *entities.Service, appWide bool) string {
+	path := service.NSName
+	if appWide {
+		path = "app_wide"
+	}
+
+	return filepath.Join(config.MountPathPrefix, service.ApplicationID, path)
 }
 
 func log() *logrus.Entry {

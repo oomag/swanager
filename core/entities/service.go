@@ -40,6 +40,13 @@ type ServicePublishedPort struct {
 	Protocol string `json:"protocol"`
 }
 
+// ServiceVolume - represents mounted volume
+type ServiceVolume struct {
+	Service string `json:"service" bson:"service"`
+	Backend string `json:"backend,omitempty" bson:"backend"`
+	AppWide bool   `json:"app_wide,omitempty" bson:"app_wide"`
+}
+
 // Service describes service entity
 type Service struct {
 	ID             string                 `bson:"_id,omitempty" json:"id"`
@@ -52,7 +59,7 @@ type Service struct {
 	PublishedPorts []ServicePublishedPort `json:"published_ports" bson:"published_ports"`
 	ApplicationID  string                 `bson:"application_id,omitempty" json:"application_id,omitempty"`
 	UserID         string                 `bson:"user_id" json:"-"`
-	Volumes        []string               `bson:"volumes" json:"volumes"`
+	Volumes        []ServiceVolume        `bson:"volumes" json:"volumes"`
 	Application    Application            `bson:"-" json:"-"`
 	Status         []ServiceStatusStruct  `bson:"-" json:"status,omitempty"`
 }
@@ -150,11 +157,23 @@ func (s *Service) UpdateParams(newService *Service) (errors []string) {
 	s.Replicas = newService.Replicas
 	s.Parallelism = newService.Parallelism
 
-	var volumes = make([]string, 0)
+	var volumes = make([]ServiceVolume, 0)
 	for _, vol := range newService.Volumes {
-		if len(vol) != 0 {
-			volumes = append(volumes, vol)
+		if vol.Service == "" {
+			errors = append(errors, "Empty service volume provided, ignoring")
+			continue
 		}
+
+		if vol.AppWide && vol.Backend == "" {
+			errors = append(errors, "Empty backend volume provided, ignoring")
+			continue
+		}
+
+		volumes = append(volumes, ServiceVolume{
+			Service: vol.Service,
+			Backend: vol.Backend,
+			AppWide: vol.AppWide,
+		})
 	}
 	s.Volumes = volumes
 
