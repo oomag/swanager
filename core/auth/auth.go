@@ -33,6 +33,8 @@ func WithEmailAndPassword(email, password string) (*entities.Token, error) {
 	}
 
 	token := entities.GenerateToken()
+	token.User = user
+
 	user.Tokens = append(user.Tokens, *token)
 	user.Save()
 

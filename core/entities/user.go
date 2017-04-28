@@ -16,8 +16,8 @@ const usersCollectionName = "users"
 
 // User describes service entity
 type User struct {
-	ID       string `bson:"_id,omitempty"`
-	Email    string
+	ID       string  `json:"id" bson:"_id,omitempty"`
+	Email    string  `json:"email"`
 	Password string  `json:"-"`
 	Tokens   []Token `json:"-"`
 }

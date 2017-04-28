@@ -9,6 +9,7 @@ import (
 // Token represent auth token for User
 type Token struct {
 	Token    string    `json:"token"`
+	User     *User     `json:"user" bson:"-"`
 	LastUsed time.Time `json:"last_used,omitempty"`
 }
 
