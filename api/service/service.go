@@ -1,9 +1,13 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/da4nik/swanager/api/common"
+	"github.com/da4nik/swanager/command"
+	"github.com/da4nik/swanager/config"
 	"github.com/da4nik/swanager/core/entities"
 	"github.com/da4nik/swanager/core/swarm"
 	swarm_service "github.com/da4nik/swanager/core/swarm/service"
@@ -32,38 +36,38 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 func list(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 
-	searchOptions := gin.H{"user_id": currentUser.ID}
-	if len(c.Param("app_id")) > 0 {
-		searchOptions["application_id"] = c.Param("app_id")
-	}
+	cmd, respChan, errChan := command.NewServiceListCommand(command.ServiceList{
+		User:          currentUser,
+		ApplicationID: c.Params.ByName("app_id"),
+		WithStatuses:  true,
+	})
+	command.RunAsync(cmd)
 
-	services, err := entities.GetServices(searchOptions)
-	if err != nil {
+	select {
+	case services := <-respChan:
+		c.JSON(http.StatusOK, gin.H{"services": services})
+	case err := <-errChan:
 		common.RenderError(c, http.StatusInternalServerError, err.Error())
-		return
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
 	}
-
-	for serviceIndex := range services {
-		swarm.GetServiceStatuses(&services[serviceIndex])
-	}
-
-	c.JSON(http.StatusOK, gin.H{"services": services})
 }
 
 func delete(c *gin.Context) {
-	service, err := getService(c, c.Param("service_id"))
-	if err != nil {
-		common.RenderError(c, http.StatusBadRequest, "Service not found")
-		return
-	}
+	cmd, respChan, errChan := command.NewServiceDeleteCommand(command.ServiceDelete{
+		User:      common.MustGetCurrentUser(c),
+		ServiceID: c.Param("service_id"),
+	})
+	command.RunAsync(cmd)
 
-	swarm_service.Remove(service)
-	if err := service.Delete(); err != nil {
+	select {
+	case service := <-respChan:
+		c.JSON(http.StatusOK, gin.H{"service": service})
+	case err := <-errChan:
 		common.RenderError(c, http.StatusUnprocessableEntity, err.Error())
-		return
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
 	}
-
-	c.JSON(http.StatusOK, gin.H{"service": service})
 }
 
 func update(c *gin.Context) {
@@ -157,16 +161,23 @@ func start(c *gin.Context) {
 		return
 	}
 
-	common.RunAsync(common.AsyncJobContext{
-		User:       currentUser,
-		GinContext: c,
-		Process: func() (interface{}, error) {
-			if err := swarm.StartService(service); err != nil {
-				return "", err
-			}
-			return service, nil
-		},
+	cmd, respChan, errChan := command.NewServiceStartCommand(command.ServiceStart{
+		User:    currentUser,
+		Service: service,
 	})
+	command.RunAsync(cmd)
+
+	select {
+	case job := <-respChan:
+		c.JSON(http.StatusAccepted, gin.H{
+			"job_id": job.ID,
+			"url":    fmt.Sprintf("http://%s/api/v1/jobs/%s", c.Request.Host, job.ID),
+		})
+	case err = <-errChan:
+		common.RenderError(c, http.StatusInternalServerError, err.Error())
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
+	}
 }
 
 func stop(c *gin.Context) {
@@ -177,17 +188,23 @@ func stop(c *gin.Context) {
 		return
 	}
 
-	common.RunAsync(common.AsyncJobContext{
-		User:       currentUser,
-		GinContext: c,
-		Process: func() (interface{}, error) {
-			if err := swarm.StopService(service); err != nil {
-				common.RenderError(c, http.StatusBadRequest, "Error stoping service: "+err.Error())
-				return "", err
-			}
-			return service, nil
-		},
+	cmd, respChan, errChan := command.NewServiceStopCommand(command.ServiceStop{
+		User:    currentUser,
+		Service: service,
 	})
+	command.RunAsync(cmd)
+
+	select {
+	case job := <-respChan:
+		c.JSON(http.StatusAccepted, gin.H{
+			"job_id": job.ID,
+			"url":    fmt.Sprintf("http://%s/api/v1/jobs/%s", c.Request.Host, job.ID),
+		})
+	case err = <-errChan:
+		common.RenderError(c, http.StatusInternalServerError, err.Error())
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
+	}
 }
 
 // getService returns service by it's id and current user id

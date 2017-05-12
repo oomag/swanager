@@ -26,6 +26,9 @@ var (
 
 	// LocalSecretKey secret key to authenticate local services
 	LocalSecretKey string
+
+	// RequestTimeout in minutes
+	RequestTimeout int
 )
 
 func init() {
@@ -36,8 +39,10 @@ func init() {
 	flag.StringVar(&MongoURL, "m", "mongodb://127.0.0.1:27017/swanager", "Mongodb url")
 	//flag.StringVar(&DatabaseDriver, "d", "mongo", "Database driver (default: mongo)")
 	flag.StringVar(&DatabaseName, "db", "swanager", "Database name (default: swanager)")
-	flag.StringVar(&MountPathPrefix, "share", "/data", "Mount point base path (default: /data)")
+	flag.StringVar(&MountPathPrefix, "share", "/home/da4nik/docker/data", "Mount point base path (default: /data)")
 	flag.StringVar(&LocalSecretKey, "lsk", "", "Secret key to authenticate local services (default: none, won't be authenticated)")
+	flag.IntVar(&RequestTimeout, "to", 5, "Request timeout")
+
 	flag.Parse()
 
 	Port = getEnvValue("SWANAGER_PORT", Port)
