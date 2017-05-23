@@ -49,6 +49,12 @@ func create(c *gin.Context) {
 		return
 	}
 
+	_, err := entities.GetUser(userRequest.Email)
+	if err == nil {
+		common.RenderError(c, http.StatusUnprocessableEntity, "User with this email is already exists.")
+		return
+	}
+
 	user := entities.User{
 		Email:    userRequest.Email,
 		Password: userRequest.Password,
