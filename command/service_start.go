@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/dokkur/swanager/core/entities"
 	"github.com/dokkur/swanager/core/swarm"
+	"github.com/dokkur/swanager/core/swarm/service"
 )
 
 // ServiceStart starts service
@@ -35,9 +36,18 @@ func (ss ServiceStart) Process() {
 	}
 	ss.responseChan <- *job
 
-	if err = swarm.StartService(ss.Service); err != nil {
-		job.SetState(entities.JobStateError, "Error stoping service: "+err.Error())
+	startFunction := swarm.UpdateService
+
+	// If service exists we need to update it instead of create
+	_, err = service.Inspect(ss.Service)
+	if err != nil {
+		startFunction = swarm.UpdateService
+	}
+
+	if err = startFunction(ss.Service); err != nil {
+		job.SetState(entities.JobStateError, "Error starting service: "+err.Error())
 		return
 	}
+
 	job.SetState(entities.JobStateSuccess, ss.Service)
 }
