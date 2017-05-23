@@ -12,9 +12,6 @@ var (
 	// MongoURL url to connect to mongodb
 	MongoURL string
 
-	// DatabaseDriver backend db driver
-	//DatabaseDriver string
-
 	// DatabaseName is a name of database
 	DatabaseName string
 
@@ -39,7 +36,7 @@ func init() {
 	flag.StringVar(&MongoURL, "m", "mongodb://127.0.0.1:27017/swanager", "Mongodb url")
 	//flag.StringVar(&DatabaseDriver, "d", "mongo", "Database driver (default: mongo)")
 	flag.StringVar(&DatabaseName, "db", "swanager", "Database name (default: swanager)")
-	flag.StringVar(&MountPathPrefix, "share", "/home/da4nik/docker/data", "Mount point base path (default: /data)")
+	flag.StringVar(&MountPathPrefix, "share", "/data", "Mount point base path (default: /data)")
 	flag.StringVar(&LocalSecretKey, "lsk", "", "Secret key to authenticate local services (default: none, won't be authenticated)")
 	flag.IntVar(&RequestTimeout, "to", 5, "Request timeout")
 
@@ -48,7 +45,6 @@ func init() {
 	Port = getEnvValue("SWANAGER_PORT", Port)
 	LogFileName = getEnvValue("SWANAGER_LOG", LogFileName)
 	MongoURL = getEnvValue("SWANAGER_MONGO_URL", MongoURL)
-	//DatabaseDriver = getEnvValue("SWANAGER_DB_DRIVER", DatabaseDriver)
 	DatabaseName = getEnvValue("SWANAGER_DB_NAME", DatabaseName)
 	MountPathPrefix = getEnvValue("SWANAGER_PATH_PREFIX", MountPathPrefix)
 	LocalSecretKey = getEnvValue("SWANAGER_LOCAL_SECRET_KEY", LocalSecretKey)
