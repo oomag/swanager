@@ -3,8 +3,8 @@ package session
 import (
 	"net/http"
 
-	"github.com/da4nik/swanager/api/common"
-	"github.com/da4nik/swanager/core/auth"
+	"github.com/dokkur/swanager/api/common"
+	"github.com/dokkur/swanager/core/auth"
 	"github.com/gin-gonic/gin"
 )
 

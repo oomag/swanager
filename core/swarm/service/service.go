@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/da4nik/swanager/config"
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm/task"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/api/types/swarm"
 	"github.com/docker/docker/client"
+	"github.com/dokkur/swanager/config"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/core/swarm/task"
 )
 
 // StatusStruct represents service state

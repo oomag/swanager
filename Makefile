@@ -1,7 +1,7 @@
 BINARY=swanager
 VERSION=1.0.0
 BUILD_TIME=`date +%FT%T%z`
-LDFLAGS=-ldflags "-linkmode external -extldflags -static -X github.com/da4nik/swanager/core.Version=${VERSION} -X github.com/da4nik/swanager/core.BuildTime=${BUILD_TIME}"
+LDFLAGS=-ldflags "-linkmode external -extldflags -static -X github.com/dokkur/swanager/core.Version=${VERSION} -X github.com/dokkur/swanager/core.BuildTime=${BUILD_TIME}"
 
 SOURCEDIR=.
 SOURCES := $(shell find $(SOURCEDIR) -name '*.go')

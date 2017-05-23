@@ -9,9 +9,9 @@ import (
 	"hash/crc32"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/da4nik/swanager/config"
-	"github.com/da4nik/swanager/core/db"
-	"github.com/da4nik/swanager/lib"
+	"github.com/dokkur/swanager/config"
+	"github.com/dokkur/swanager/core/db"
+	"github.com/dokkur/swanager/lib"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )

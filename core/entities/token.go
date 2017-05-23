@@ -3,7 +3,7 @@ package entities
 import (
 	"time"
 
-	"github.com/da4nik/swanager/lib"
+	"github.com/dokkur/swanager/lib"
 )
 
 // Token represent auth token for User

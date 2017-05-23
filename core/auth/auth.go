@@ -3,8 +3,8 @@ package auth
 import (
 	"fmt"
 
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/lib"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/lib"
 )
 
 // WithToken authenticates with token

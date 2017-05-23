@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/da4nik/swanager/api/app"
-	"github.com/da4nik/swanager/api/job"
-	"github.com/da4nik/swanager/api/service"
-	"github.com/da4nik/swanager/api/session"
-	"github.com/da4nik/swanager/api/stat"
-	"github.com/da4nik/swanager/api/user"
-	"github.com/da4nik/swanager/api/ws"
-	"github.com/da4nik/swanager/config"
+	"github.com/dokkur/swanager/api/app"
+	"github.com/dokkur/swanager/api/job"
+	"github.com/dokkur/swanager/api/service"
+	"github.com/dokkur/swanager/api/session"
+	"github.com/dokkur/swanager/api/stat"
+	"github.com/dokkur/swanager/api/user"
+	"github.com/dokkur/swanager/api/ws"
+	"github.com/dokkur/swanager/config"
 	"github.com/gin-gonic/gin"
 )
 

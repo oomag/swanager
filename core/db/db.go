@@ -1,7 +1,7 @@
 package db
 
 import (
-	"github.com/da4nik/swanager/config"
+	"github.com/dokkur/swanager/config"
 	mgo "gopkg.in/mgo.v2"
 )
 

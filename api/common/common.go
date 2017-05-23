@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/da4nik/swanager/config"
-	"github.com/da4nik/swanager/core/auth"
-	"github.com/da4nik/swanager/core/entities"
+	"github.com/dokkur/swanager/config"
+	"github.com/dokkur/swanager/core/auth"
+	"github.com/dokkur/swanager/core/entities"
 	"github.com/gin-gonic/gin"
 )
 

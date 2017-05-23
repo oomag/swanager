@@ -5,10 +5,10 @@ Base api path is `/api/`
 
 Path | Description
 ----- | ------
-[/session](https://github.com/da4nik/swanager/blob/master/docs/session.md) | Login/Logout
-[/apps](https://github.com/da4nik/swanager/blob/master/docs/app.md) | Applications
-[/services](https://github.com/da4nik/swanager/blob/master/docs/services.md) | Services
-[/users](https://github.com/da4nik/swanager/blob/master/docs/users.md) | Users
+[/session](https://github.com/dokkur/swanager/blob/master/docs/session.md) | Login/Logout
+[/apps](https://github.com/dokkur/swanager/blob/master/docs/app.md) | Applications
+[/services](https://github.com/dokkur/swanager/blob/master/docs/services.md) | Services
+[/users](https://github.com/dokkur/swanager/blob/master/docs/users.md) | Users
 
 
 # Authorization / Authentication

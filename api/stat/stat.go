@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/da4nik/swanager/api/common"
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm"
+	"github.com/dokkur/swanager/api/common"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/core/swarm"
 	"github.com/gin-gonic/gin"
 )
 

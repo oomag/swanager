@@ -4,8 +4,8 @@ import (
 	"io"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/da4nik/swanager/api/ws"
-	"github.com/da4nik/swanager/core/swarm"
+	"github.com/dokkur/swanager/api/ws"
+	"github.com/dokkur/swanager/core/swarm"
 	"github.com/davecgh/go-spew/spew"
 )
 

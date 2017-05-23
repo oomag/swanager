@@ -1,8 +1,8 @@
 package ws
 
 import (
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/core/swarm"
 	"gopkg.in/mgo.v2/bson"
 )
 

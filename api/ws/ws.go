@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/da4nik/swanager/core/auth"
-	"github.com/da4nik/swanager/core/entities"
+	"github.com/dokkur/swanager/core/auth"
+	"github.com/dokkur/swanager/core/entities"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )

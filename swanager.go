@@ -10,10 +10,10 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gin-gonic/gin"
 
-	"github.com/da4nik/swanager/api"
-	"github.com/da4nik/swanager/config"
-	"github.com/da4nik/swanager/core"
-	"github.com/da4nik/swanager/events"
+	"github.com/dokkur/swanager/api"
+	"github.com/dokkur/swanager/config"
+	"github.com/dokkur/swanager/core"
+	"github.com/dokkur/swanager/events"
 )
 
 var logFile *os.File

@@ -1,8 +1,9 @@
 package command
 
 import (
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/core/swarm"
+	"github.com/dokkur/swanager/core/swarm/service"
 )
 
 // ServiceStop stops service
@@ -35,6 +36,13 @@ func (ss ServiceStop) Process() {
 	}
 	ss.responseChan <- *job
 
+	_, err = service.Inspect(ss.Service)
+	if err != nil {
+		job.SetState(entities.JobStateSuccess, ss.Service)
+		return
+	}
+
+	// If service exists, then this is correct error
 	if err = swarm.StopService(ss.Service); err != nil {
 		job.SetState(entities.JobStateError, "Error stoping service: "+err.Error())
 		return

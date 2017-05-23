@@ -3,9 +3,9 @@ package entities
 import (
 	"time"
 
-	"github.com/da4nik/swanager/config"
-	"github.com/da4nik/swanager/core/db"
-	"github.com/da4nik/swanager/lib"
+	"github.com/dokkur/swanager/config"
+	"github.com/dokkur/swanager/core/db"
+	"github.com/dokkur/swanager/lib"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -49,13 +49,15 @@ func CreateJob(user *User) (job *Job, err error) {
 }
 
 // GetJob return job ny id
-func GetJob(id string) (job *Job, err error) {
+func GetJob(id string) (*Job, error) {
 	session := db.GetSession()
 	defer session.Close()
 	c := getJobsCollection(session)
 
-	err = c.Find(bson.M{"id": id}).One(job)
-	return
+	var job Job
+	err := c.Find(bson.M{"_id": id}).One(&job)
+
+	return &job, err
 }
 
 // SetState sets state and result for current job

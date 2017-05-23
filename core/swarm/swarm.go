@@ -3,9 +3,9 @@ package swarm
 import (
 	"context"
 
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/core/swarm/network"
-	swarm_service "github.com/da4nik/swanager/core/swarm/service"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/core/swarm/network"
+	swarm_service "github.com/dokkur/swanager/core/swarm/service"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"

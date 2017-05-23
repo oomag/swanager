@@ -1,8 +1,8 @@
 package command
 
 import (
-	"github.com/da4nik/swanager/core/entities"
-	swarm_service "github.com/da4nik/swanager/core/swarm/service"
+	"github.com/dokkur/swanager/core/entities"
+	swarm_service "github.com/dokkur/swanager/core/swarm/service"
 	"github.com/gin-gonic/gin"
 )
 

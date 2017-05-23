@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/Sirupsen/logrus"
-	"github.com/da4nik/swanager/core/entities"
-	"github.com/da4nik/swanager/lib"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/lib"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"

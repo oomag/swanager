@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/da4nik/swanager/core/entities"
+	"github.com/dokkur/swanager/core/entities"
 	"github.com/gin-gonic/gin"
 )
 
