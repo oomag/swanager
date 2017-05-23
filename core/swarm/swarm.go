@@ -3,13 +3,13 @@ package swarm
 import (
 	"context"
 
-	"github.com/dokkur/swanager/core/entities"
-	"github.com/dokkur/swanager/core/swarm/network"
-	swarm_service "github.com/dokkur/swanager/core/swarm/service"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
+	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/core/swarm/network"
+	swarm_service "github.com/dokkur/swanager/core/swarm/service"
 )
 
 const serviceStatusNotExists = "not_exists"
@@ -69,9 +69,6 @@ func UpdateService(service *entities.Service) error {
 
 	service.LoadApplication()
 	networkName := network.NameForDocker(&service.Application)
-
-	// spew.Dump(serviceInspection)
-	// spew.Dump(serviceInspection.Meta.Version.Index + 1)
 
 	return swarm_service.Update(swarm_service.SpecOptions{
 		Service:     service,

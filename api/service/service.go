@@ -163,7 +163,7 @@ func start(c *gin.Context) {
 
 	cmd, respChan, errChan := command.NewServiceStartCommand(command.ServiceStart{
 		User:    currentUser,
-		Service: service,
+		Service: *service,
 	})
 	command.RunAsync(cmd)
 
@@ -190,7 +190,7 @@ func stop(c *gin.Context) {
 
 	cmd, respChan, errChan := command.NewServiceStopCommand(command.ServiceStop{
 		User:    currentUser,
-		Service: service,
+		Service: *service,
 	})
 	command.RunAsync(cmd)
 

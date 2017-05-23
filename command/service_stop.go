@@ -11,7 +11,7 @@ type ServiceStop struct {
 	CommonCommand
 
 	User    *entities.User
-	Service *entities.Service
+	Service entities.Service
 
 	responseChan chan<- entities.Job
 }
@@ -36,14 +36,14 @@ func (ss ServiceStop) Process() {
 	}
 	ss.responseChan <- *job
 
-	_, err = service.Inspect(ss.Service)
+	_, err = service.Inspect(&ss.Service)
 	if err != nil {
 		job.SetState(entities.JobStateSuccess, ss.Service)
 		return
 	}
 
 	// If service exists, then this is correct error
-	if err = swarm.StopService(ss.Service); err != nil {
+	if err = swarm.StopService(&ss.Service); err != nil {
 		job.SetState(entities.JobStateError, "Error stoping service: "+err.Error())
 		return
 	}

@@ -1,9 +1,13 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/dokkur/swanager/api/common"
+	"github.com/dokkur/swanager/command"
+	"github.com/dokkur/swanager/config"
 	"github.com/dokkur/swanager/core/entities"
 	"github.com/dokkur/swanager/core/swarm"
 	swarm_service "github.com/dokkur/swanager/core/swarm/service"
@@ -133,16 +137,23 @@ func start(c *gin.Context) {
 		return
 	}
 
-	common.RunAsync(common.AsyncJobContext{
-		User:       currentUser,
-		GinContext: c,
-		Process: func() (interface{}, error) {
-			if err := swarm.StartApplication(app); err != nil {
-				return "", err
-			}
-			return app, nil
-		},
+	cmd, respChan, errChan := command.NewAppStartCommand(command.AppStart{
+		User:        currentUser,
+		Application: app,
 	})
+	command.RunAsync(cmd)
+
+	select {
+	case job := <-respChan:
+		c.JSON(http.StatusAccepted, gin.H{
+			"job_id": job.ID,
+			"url":    fmt.Sprintf("http://%s/api/v1/jobs/%s", c.Request.Host, job.ID),
+		})
+	case err = <-errChan:
+		common.RenderError(c, http.StatusInternalServerError, err.Error())
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
+	}
 }
 
 func stop(c *gin.Context) {
@@ -153,17 +164,23 @@ func stop(c *gin.Context) {
 		return
 	}
 
-	common.RunAsync(common.AsyncJobContext{
-		User:       currentUser,
-		GinContext: c,
-		Process: func() (interface{}, error) {
-			if err := swarm.StopApplication(app); err != nil {
-				common.RenderError(c, http.StatusBadRequest, "Error stoping application: "+err.Error())
-				return "", err
-			}
-			return app, nil
-		},
+	cmd, respChan, errChan := command.NewAppStopCommand(command.AppStop{
+		User:        currentUser,
+		Application: app,
 	})
+	command.RunAsync(cmd)
+
+	select {
+	case job := <-respChan:
+		c.JSON(http.StatusAccepted, gin.H{
+			"job_id": job.ID,
+			"url":    fmt.Sprintf("http://%s/api/v1/jobs/%s", c.Request.Host, job.ID),
+		})
+	case err = <-errChan:
+		common.RenderError(c, http.StatusInternalServerError, err.Error())
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
+	}
 }
 
 func destroy(c *gin.Context) {

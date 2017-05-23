@@ -11,7 +11,7 @@ type ServiceStart struct {
 	CommonCommand
 
 	User    *entities.User
-	Service *entities.Service
+	Service entities.Service
 
 	responseChan chan<- entities.Job
 }
@@ -39,12 +39,12 @@ func (ss ServiceStart) Process() {
 	startFunction := swarm.UpdateService
 
 	// If service exists we need to update it instead of create
-	_, err = service.Inspect(ss.Service)
+	_, err = service.Inspect(&ss.Service)
 	if err != nil {
-		startFunction = swarm.UpdateService
+		startFunction = swarm.StartService
 	}
 
-	if err = startFunction(ss.Service); err != nil {
+	if err = startFunction(&ss.Service); err != nil {
 		job.SetState(entities.JobStateError, "Error starting service: "+err.Error())
 		return
 	}
