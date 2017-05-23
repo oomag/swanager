@@ -27,5 +27,7 @@ _testmain.go
 
 *.iml
 
+.env
+
 .glide/
 vendor/

@@ -8,10 +8,11 @@ import (
 
 // ServiceDelete deleted service
 type ServiceDelete struct {
+	CommonCommand
+
 	User      *entities.User
 	ServiceID string
 
-	errorChan    chan<- error
 	responseChan chan<- entities.Service
 }
 

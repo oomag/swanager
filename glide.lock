@@ -1,5 +1,5 @@
-hash: 7bd54e8fc58071abcc85ab86b93b9d1b9c26dd448bb0ea4934a1f6b304596497
-updated: 2017-05-12T20:57:31.183171768+03:00
+hash: 56cf74f23b8f0c8a85c46ec8a5c949f2d58f84f8b758b725f8b120a6581480e6
+updated: 2017-05-23T09:42:04.605301838+03:00
 imports:
 - name: github.com/davecgh/go-spew
   version: 346938d642f2ec3594ed81d874461961cd0faa76
@@ -54,6 +54,8 @@ imports:
   - proto
 - name: github.com/gorilla/websocket
   version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
+- name: github.com/joho/godotenv
+  version: 726cc8b906e3d31c70a9671c90a13716a8d3f50d
 - name: github.com/manucorporat/sse
   version: ee05b128a739a0fb76c7ebd3ae4810c1de808d6d
 - name: github.com/mattn/go-isatty

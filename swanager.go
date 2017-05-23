@@ -1,14 +1,19 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 
+	_ "github.com/joho/godotenv/autoload"
+
 	log "github.com/Sirupsen/logrus"
+	"github.com/gin-gonic/gin"
+
 	"github.com/da4nik/swanager/api"
 	"github.com/da4nik/swanager/config"
+	"github.com/da4nik/swanager/core"
 	"github.com/da4nik/swanager/events"
-	"github.com/gin-gonic/gin"
 )
 
 var logFile *os.File
@@ -36,6 +41,10 @@ func initLogger() {
 }
 
 func main() {
+	if core.Version != "" || core.BuildTime != "" {
+		fmt.Printf("Swanager build version %s, build time %s\n\n", core.Version, core.BuildTime)
+	}
+
 	initLogger()
 
 	// TODO: current there no way to gracefully stop net/http server,

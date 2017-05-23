@@ -8,11 +8,13 @@ import (
 
 // ServiceList returns services list
 type ServiceList struct {
+	CommonCommand
+
 	User          *entities.User
 	ApplicationID string
 	WithStatuses  bool
-	errorChan     chan<- error
-	responseChan  chan<- []entities.Service
+
+	responseChan chan<- []entities.Service
 }
 
 // NewServiceListCommand create command

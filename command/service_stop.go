@@ -7,10 +7,11 @@ import (
 
 // ServiceStop stops service
 type ServiceStop struct {
+	CommonCommand
+
 	User    *entities.User
 	Service *entities.Service
 
-	errorChan    chan<- error
 	responseChan chan<- entities.Job
 }
 

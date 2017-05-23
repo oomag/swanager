@@ -7,10 +7,11 @@ import (
 
 // ServiceStart starts service
 type ServiceStart struct {
+	CommonCommand
+
 	User    *entities.User
 	Service *entities.Service
 
-	errorChan    chan<- error
 	responseChan chan<- entities.Job
 }
 
