@@ -38,6 +38,7 @@ type ServicePublishedPort struct {
 	Internal uint32 `json:"internal"`
 	External uint32 `json:"external"`
 	Protocol string `json:"protocol"`
+	Disabled bool   `json:"disabled"`
 }
 
 // ServiceVolume - represents mounted volume
@@ -209,6 +210,7 @@ func (s *Service) UpdateParams(newService *Service) (errors []string) {
 			Internal: port.Internal,
 			External: externalPort,
 			Protocol: port.Protocol,
+			Disabled: port.Disabled,
 		})
 	}
 	s.PublishedPorts = ports

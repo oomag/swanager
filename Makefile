@@ -16,7 +16,7 @@ $(BINARY): $(SOURCES)
 build: $(BINARY)
 
 run:
-	go run ${BINARY}.go
+	@go run ${BINARY}.go
 
 install:
 	go install ${LDFLAGS} ./...

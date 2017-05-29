@@ -239,6 +239,11 @@ func prepareEnvVars(service *entities.Service) (vars []string) {
 func preparePorts(service *entities.Service) (ports []swarm.PortConfig) {
 
 	for _, port := range service.PublishedPorts {
+		// Don't publish port if disabled
+		if port.Disabled {
+			continue
+		}
+
 		ports = append(ports, swarm.PortConfig{
 			Name:          "swanager_port",
 			Protocol:      stringToProtocol(port.Protocol),
