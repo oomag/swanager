@@ -36,10 +36,14 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 func list(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 
+	withStatuses := c.Query("with_statuses") == "1"
+	withVolumeSizes := c.Query("with_volume_sizes") == "1"
+
 	cmd, respChan, errChan := command.NewServiceListCommand(command.ServiceList{
-		User:          currentUser,
-		ApplicationID: c.Params.ByName("app_id"),
-		WithStatuses:  true,
+		User:            currentUser,
+		ApplicationID:   c.Params.ByName("app_id"),
+		WithStatuses:    withStatuses,
+		WithVolumeSizes: withVolumeSizes,
 	})
 	command.RunAsync(cmd)
 
@@ -132,25 +136,20 @@ func create(c *gin.Context) {
 }
 
 func show(c *gin.Context) {
-	currentUser := common.MustGetCurrentUser(c)
-
-	service, err := entities.GetService(gin.H{
-		"user_id": currentUser.ID,
-		"_id":     c.Param("service_id"),
+	cmd, respChan, errChan := command.NewServiceInspectCommand(command.ServiceInspect{
+		User:      common.MustGetCurrentUser(c),
+		ServiceID: c.Param("service_id"),
 	})
+	command.RunAsync(cmd)
 
-	if err != nil {
-		common.RenderError(c, http.StatusNotFound, "Service not found")
-		return
+	select {
+	case service := <-respChan:
+		c.JSON(http.StatusOK, gin.H{"service": service})
+	case err := <-errChan:
+		common.RenderError(c, http.StatusUnprocessableEntity, err.Error())
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
 	}
-
-	serviceStatus, err := swarm_service.Status(service)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"service": service, "status_error": err})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"service": service, "status": serviceStatus})
 }
 
 func start(c *gin.Context) {

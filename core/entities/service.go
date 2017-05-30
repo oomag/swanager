@@ -46,6 +46,7 @@ type ServiceVolume struct {
 	Service string `json:"service" bson:"service"`
 	Backend string `json:"backend,omitempty" bson:"backend"`
 	AppWide bool   `json:"app_wide,omitempty" bson:"app_wide"`
+	Size    int64  `json:"size,omitempty" bson:"-"`
 }
 
 // Service describes service entity
@@ -276,7 +277,7 @@ func (s *Service) LoadApplication() error {
 	return nil
 }
 
-// AddServiceStatus -sdfkjsdf
+// AddServiceStatus -add service task status to list
 func (s *Service) AddServiceStatus(status ServiceStatusStruct) {
 	s.Status = append(s.Status, status)
 }

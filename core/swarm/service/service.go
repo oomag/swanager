@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Sirupsen/logrus"
@@ -209,7 +210,7 @@ func getServiceVolumes(service *entities.Service) []mount.Mount {
 
 	result := make([]mount.Mount, 0)
 	for _, vol := range service.Volumes {
-		sourcePath := filepath.Join(getMountPathPrefix(service, vol.AppWide), vol.Backend)
+		sourcePath := getMountPath(service, vol)
 		os.MkdirAll(sourcePath, 0777)
 
 		result = append(result, mount.Mount{
@@ -272,6 +273,41 @@ func getMountPathPrefix(service *entities.Service, appWide bool) string {
 	return filepath.Join(config.MountPathPrefix, service.ApplicationID, path)
 }
 
+func getMountPath(service *entities.Service, vol entities.ServiceVolume) string {
+	path := vol.Service
+	if vol.Backend != "" {
+		path = vol.Backend
+	}
+
+	return filepath.Join(getMountPathPrefix(service, vol.AppWide), path)
+}
+
 func log() *logrus.Entry {
 	return logrus.WithField("module", "swarm.service")
+}
+
+// LoadVolumeSizes loads volume sized into struct
+func LoadVolumeSizes(service *entities.Service) {
+	var wg sync.WaitGroup
+	for index := range service.Volumes {
+		wg.Add(1)
+
+		go dirSize(service, &service.Volumes[index], &wg)
+	}
+	wg.Wait()
+}
+
+func dirSize(service *entities.Service, vol *entities.ServiceVolume, wg *sync.WaitGroup) {
+	defer wg.Done()
+	var size int64
+
+	root := getMountPath(service, *vol)
+
+	filepath.Walk(root, func(_ string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			size += info.Size()
+		}
+		return err
+	})
+	vol.Size = size
 }

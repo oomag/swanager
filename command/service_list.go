@@ -1,8 +1,11 @@
 package command
 
 import (
+	"sync"
+
 	"github.com/dokkur/swanager/core/entities"
 	"github.com/dokkur/swanager/core/swarm"
+	swarm_service "github.com/dokkur/swanager/core/swarm/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -10,9 +13,10 @@ import (
 type ServiceList struct {
 	CommonCommand
 
-	User          *entities.User
-	ApplicationID string
-	WithStatuses  bool
+	User            *entities.User
+	ApplicationID   string
+	WithStatuses    bool
+	WithVolumeSizes bool
 
 	responseChan chan<- []entities.Service
 }
@@ -40,10 +44,22 @@ func (c ServiceList) Process() {
 		return
 	}
 
-	if c.WithStatuses {
+	if c.WithStatuses || c.WithVolumeSizes {
+		var wg sync.WaitGroup
 		for serviceIndex := range services {
-			swarm.GetServiceStatuses(&services[serviceIndex])
+			wg.Add(1)
+			go func(service *entities.Service) {
+				defer wg.Done()
+				if c.WithStatuses {
+					swarm.GetServiceStatuses(service)
+				}
+
+				if c.WithVolumeSizes {
+					swarm_service.LoadVolumeSizes(service)
+				}
+			}(&services[serviceIndex])
 		}
+		wg.Wait()
 	}
 
 	c.responseChan <- services
