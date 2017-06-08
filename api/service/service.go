@@ -26,10 +26,12 @@ func GetRoutesForRouter(router *gin.RouterGroup) {
 	service := services.Group("/:service_id")
 	{
 		service.GET("", show)
-		service.PUT("", update)
+		service.GET("/logs", logs)
 		service.DELETE("", delete)
+		service.PUT("", update)
 		service.PUT("/start", start)
 		service.PUT("/stop", stop)
+
 	}
 }
 
@@ -183,7 +185,7 @@ func stop(c *gin.Context) {
 	currentUser := common.MustGetCurrentUser(c)
 	service, err := getService(c, c.Param("service_id"))
 	if err != nil {
-		common.RenderError(c, http.StatusBadRequest, "Service not found: "+err.Error())
+		common.RenderError(c, http.StatusNotFound, "Service not found: "+err.Error())
 		return
 	}
 
@@ -201,6 +203,25 @@ func stop(c *gin.Context) {
 		})
 	case err = <-errChan:
 		common.RenderError(c, http.StatusInternalServerError, err.Error())
+	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
+		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
+	}
+}
+
+func logs(c *gin.Context) {
+	currentUser := common.MustGetCurrentUser(c)
+
+	cmd, respChan, errChan := command.NewServiceLogsCommand(command.ServiceLogs{
+		User:      currentUser,
+		ServiceID: c.Param("service_id"),
+	})
+	command.RunAsync(cmd)
+
+	select {
+	case logs := <-respChan:
+		c.JSON(http.StatusOK, gin.H{"logs": logs})
+	case err := <-errChan:
+		common.RenderError(c, http.StatusUnprocessableEntity, err.Error())
 	case <-time.After(time.Second * time.Duration(config.RequestTimeout)):
 		common.RenderError(c, http.StatusRequestTimeout, "Timeout")
 	}
