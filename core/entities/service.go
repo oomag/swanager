@@ -120,27 +120,6 @@ type publishedPorts struct {
 	Ports []ServicePublishedPort `bson:"published_ports"`
 }
 
-func getPublishedPorts(params map[string]interface{}) map[uint32]bool {
-	session := db.GetSession()
-	defer session.Close()
-
-	c := getServicesCollection(session)
-	res := make([]publishedPorts, 0)
-	if err := c.Find(params).
-		Select(bson.M{"published_ports.external": 1, "_id": 0}).
-		All(&res); err != nil {
-		panic(err)
-	}
-
-	ports := make(map[uint32]bool, 0)
-	for _, pubPort := range res {
-		for _, port := range pubPort.Ports {
-			ports[port.External] = true
-		}
-	}
-	return ports
-}
-
 // Delete - removed entity from database
 func (s *Service) Delete() error {
 	session := db.GetSession()
@@ -302,6 +281,27 @@ func prepareEnvVariableName(name string) (result string) {
 	result = strings.ToUpper(name)
 	result = strings.Replace(result, " ", "_", -1)
 	return
+}
+
+func getPublishedPorts(params map[string]interface{}) map[uint32]bool {
+	session := db.GetSession()
+	defer session.Close()
+
+	c := getServicesCollection(session)
+	res := make([]publishedPorts, 0)
+	if err := c.Find(params).
+		Select(bson.M{"published_ports.external": 1, "_id": 0}).
+		All(&res); err != nil {
+		panic(err)
+	}
+
+	ports := make(map[uint32]bool, 0)
+	for _, pubPort := range res {
+		for _, port := range pubPort.Ports {
+			ports[port.External] = true
+		}
+	}
+	return ports
 }
 
 func logService() *logrus.Entry {

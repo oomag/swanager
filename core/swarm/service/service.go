@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"os"
@@ -138,6 +139,35 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 			Timestamp: task.Status.Timestamp,
 			Error:     task.Status.Err,
 		})
+	}
+	return result, nil
+}
+
+// Logs return service logs
+func Logs(service *entities.Service) ([]string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cli, err := client.NewEnvClient()
+	if err != nil {
+		return nil, err
+	}
+	defer cli.Close()
+
+	reader, err := cli.ServiceLogs(ctx, service.NSName, types.ContainerLogsOptions{
+		ShowStderr: true,
+		ShowStdout: true,
+		Follow:     false,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	scanner := bufio.NewScanner(reader)
+	result := make([]string, 0)
+
+	for scanner.Scan() {
+		result = append(result, scanner.Text())
 	}
 	return result, nil
 }
