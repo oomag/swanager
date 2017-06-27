@@ -43,7 +43,7 @@ func list(c *gin.Context) {
 
 	cmd, respChan, errChan := command.NewServiceListCommand(command.ServiceList{
 		User:            currentUser,
-		ApplicationID:   c.Params.ByName("app_id"),
+		ApplicationID:   c.Query("app_id"),
 		WithStatuses:    withStatuses,
 		WithVolumeSizes: withVolumeSizes,
 	})
