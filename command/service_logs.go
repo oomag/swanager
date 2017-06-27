@@ -43,7 +43,7 @@ func (sl ServiceLogs) Process() {
 
 	_, err = swarm_service.Inspect(service)
 	if err != nil {
-		sl.errorChan <- fmt.Errorf("Service stoppedtar")
+		sl.errorChan <- fmt.Errorf("Service stopped.")
 		return
 	}
 

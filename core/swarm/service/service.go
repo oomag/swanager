@@ -158,6 +158,7 @@ func Logs(service *entities.Service) ([]string, error) {
 		ShowStderr: true,
 		ShowStdout: true,
 		Follow:     false,
+		Tail:       "20",
 	})
 	if err != nil {
 		return nil, err
@@ -334,7 +335,7 @@ func dirSize(service *entities.Service, vol *entities.ServiceVolume, wg *sync.Wa
 	root := getMountPath(service, *vol)
 
 	filepath.Walk(root, func(_ string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
+		if err == nil && !info.IsDir() {
 			size += info.Size()
 		}
 		return err
