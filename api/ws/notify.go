@@ -3,6 +3,7 @@ package ws
 import (
 	"github.com/dokkur/swanager/core/entities"
 	"github.com/dokkur/swanager/core/swarm"
+	"github.com/gin-gonic/gin"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -22,9 +23,10 @@ func NotifyServiceState(message NotifyServiceStateMessage) {
 	}
 
 	service.LoadApplication()
-
-	if clientConnection, ok := clients[service.Application.UserID]; ok {
-		swarm.GetServiceStatuses(service)
-		clientConnection.Incoming <- *service
+	if !isUserConnected(service.Application.UserID) {
+		return
 	}
+	swarm.GetServiceStatuses(service)
+
+	sendNotification(service.Application.UserID, gin.H{"service": service})
 }
