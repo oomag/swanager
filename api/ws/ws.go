@@ -7,6 +7,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/dokkur/swanager/core/auth"
 	"github.com/dokkur/swanager/core/entities"
+	"github.com/dokkur/swanager/lib"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -16,22 +17,26 @@ type authMessage struct {
 }
 
 type answer struct {
-	AnswerType string `json:"type"`
-	Data       string
-	Service    *entities.Service `json:"service,omitempty"`
+	AnswerType string      `json:"type"`
+	Data       interface{} `json:"data"`
 }
 
 type clientConnection struct {
+	ID        string
 	State     string
 	User      *entities.User
 	Conn      *websocket.Conn
 	AuthError error
-	Incoming  chan entities.Service
+	Incoming  chan interface{}
 }
 
 const (
 	stateWorking         = "working"
 	stateUnauthenticated = "unauthenticated"
+
+	answerTypeData          = "data"
+	answerTypeError         = "error"
+	answerTypeAuthenticated = "authenticated"
 )
 
 var wsUpgrader = websocket.Upgrader{
@@ -40,7 +45,8 @@ var wsUpgrader = websocket.Upgrader{
 	CheckOrigin:     func(r *http.Request) bool { return true },
 }
 
-var clients = make(map[string]*clientConnection)
+// clients[UserID][ConnectionID]
+var clients = make(map[string]map[string]*clientConnection)
 
 // InitWS add ws handler for api
 func InitWS(router *gin.Engine) {
@@ -56,6 +62,7 @@ func wsHandler(c *gin.Context) {
 	defer conn.Close()
 
 	context := clientConnection{
+		ID:    lib.GenerateUUID(),
 		State: stateUnauthenticated,
 		Conn:  conn,
 	}
@@ -63,8 +70,9 @@ func wsHandler(c *gin.Context) {
 	for {
 		t, msg, err := conn.ReadMessage()
 		if err != nil {
+			log().Debugf("ws Error: %s", err.Error())
 			if context.State == stateWorking {
-				delete(clients, context.User.ID)
+				removeClient(&context)
 			}
 			break
 		}
@@ -84,15 +92,10 @@ func wsHandler(c *gin.Context) {
 func (c *clientConnection) listen() {
 	for {
 		select {
-		case service := <-c.Incoming:
-			log().WithField("UserID", c.User.ID).Debugf("Sending to client %s", service.NSName)
-			if service.Name == "" {
-				return
-			}
-
+		case data := <-c.Incoming:
 			c.sendAnswer(answer{
-				AnswerType: "data",
-				Service:    &service,
+				AnswerType: answerTypeData,
+				Data:       data,
 			})
 		}
 	}
@@ -118,14 +121,14 @@ func (c *clientConnection) authenticate(msg []byte) {
 
 	log().Debugf("Authenticated (%s), proceeding with normal mode", c.User.Email)
 
-	c.State = stateWorking
-	incoming := make(chan entities.Service, 10)
+	incoming := make(chan interface{}, 10)
 	c.Incoming = incoming
+	c.State = stateWorking
 
-	clients[c.User.ID] = c
+	addClient(c)
 
 	c.sendAnswer(answer{
-		AnswerType: "authenticated",
+		AnswerType: answerTypeAuthenticated,
 		Data:       "Ok",
 	})
 
@@ -136,7 +139,7 @@ func (c *clientConnection) authError() {
 	log().Debugf("Auth error: %s", c.AuthError.Error())
 
 	c.sendAnswer(answer{
-		AnswerType: "error",
+		AnswerType: answerTypeError,
 		Data:       c.AuthError.Error(),
 	})
 
@@ -146,6 +149,33 @@ func (c *clientConnection) authError() {
 func (c *clientConnection) sendAnswer(ans answer) {
 	result, _ := json.Marshal(ans)
 	c.Conn.WriteMessage(1, result)
+}
+
+func addClient(c *clientConnection) {
+	if _, ok := clients[c.User.ID]; !ok {
+		clients[c.User.ID] = make(map[string]*clientConnection)
+	}
+	clients[c.User.ID][c.ID] = c
+}
+
+func removeClient(c *clientConnection) {
+	delete(clients[c.User.ID], c.ID)
+	if len(clients[c.User.ID]) == 0 {
+		delete(clients, c.User.ID)
+	}
+}
+
+func sendNotification(userID string, data interface{}) {
+	if clientConnections, ok := clients[userID]; ok {
+		for _, connection := range clientConnections {
+			connection.Incoming <- data
+		}
+	}
+}
+
+func isUserConnected(userID string) bool {
+	_, connected := clients[userID]
+	return connected
 }
 
 func log() *logrus.Entry {
