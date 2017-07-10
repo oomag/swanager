@@ -7,26 +7,20 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// NotifyServiceStateMessage params for NotifyServiceState
-type NotifyServiceStateMessage struct {
-	ServiceName string
-	Action      string
-}
-
-// NotifyServiceState notify user about state change
-func NotifyServiceState(message NotifyServiceStateMessage) {
-	log().Debugf("Got service state notification: [%s] %s", message.Action, message.ServiceName)
-	service, err := entities.GetService(bson.M{"ns_name": message.ServiceName})
+// SendService notify user about state change
+func SendService(serviceName string) {
+	log().Debugf("Got service notification: %s", serviceName)
+	service, err := entities.GetService(bson.M{"ns_name": serviceName})
 	if err != nil {
-		log().WithField("function", "NotifyServiceState").Debugf("Got error: %s", err.Error())
+		log().WithField("function", "NotifyService").Debugf("Got error: %s", err.Error())
 		return
 	}
 
 	service.LoadApplication()
-	if !isUserConnected(service.Application.UserID) {
+	if !IsUserConnected(service.Application.UserID) {
 		return
 	}
 	swarm.GetServiceStatuses(service)
 
-	sendNotification(service.Application.UserID, gin.H{"service": service})
+	Send(service.Application.UserID, gin.H{"service": service})
 }

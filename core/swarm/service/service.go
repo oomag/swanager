@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -144,7 +145,12 @@ func Status(service *entities.Service) ([]StatusStruct, error) {
 }
 
 // Logs return service logs
-func Logs(service *entities.Service) ([]string, error) {
+func Logs(service *entities.Service, linesCount int) ([]string, error) {
+	// Default lines count is 20
+	if linesCount == 0 {
+		linesCount = 20
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -158,7 +164,7 @@ func Logs(service *entities.Service) ([]string, error) {
 		ShowStderr: true,
 		ShowStdout: true,
 		Follow:     false,
-		Tail:       "20",
+		Tail:       strconv.Itoa(linesCount),
 	})
 	if err != nil {
 		return nil, err
@@ -172,6 +178,36 @@ func Logs(service *entities.Service) ([]string, error) {
 	}
 	return result, nil
 }
+
+// LogsFollow returns last linesCount log lines and starts following
+// service log, should be started as goroutine
+// func LogsFollow(service *entities.Service, linesCount int) (io.ReadCloser, error) {
+// 	// Default lines count is 20
+// 	if linesCount == 0 {
+// 		linesCount = 20
+// 	}
+//
+// 	ctx, cancel := context.WithCancel(context.Background())
+// 	defer cancel()
+//
+// 	cli, err := client.NewEnvClient()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer cli.Close()
+//
+// 	reader, err := cli.ServiceLogs(ctx, service.NSName, types.ContainerLogsOptions{
+// 		ShowStderr: true,
+// 		ShowStdout: true,
+// 		Follow:     true,
+// 		Tail:       strconv.Itoa(linesCount),
+// 	})
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return reader, nil
+// }
 
 func getServiceSpec(opts SpecOptions) swarm.ServiceSpec {
 	opts.Service.LoadApplication()
@@ -330,16 +366,16 @@ func LoadVolumeSizes(service *entities.Service) {
 
 func dirSize(service *entities.Service, vol *entities.ServiceVolume, wg *sync.WaitGroup) {
 	defer wg.Done()
-//	var size int64
+	//	var size int64
 
-//	root := getMountPath(service, *vol)
+	//	root := getMountPath(service, *vol)
 
-//	filepath.Walk(root, func(_ string, info os.FileInfo, err error) error {
-//		if err == nil && !info.IsDir() {
-//			size += info.Size()
-//		}
-//		return err
-//	})
-//	vol.Size = size
+	//	filepath.Walk(root, func(_ string, info os.FileInfo, err error) error {
+	//		if err == nil && !info.IsDir() {
+	//			size += info.Size()
+	//		}
+	//		return err
+	//	})
+	//	vol.Size = size
 	vol.Size = 0
 }

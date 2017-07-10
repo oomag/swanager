@@ -47,7 +47,7 @@ func (sl ServiceLogs) Process() {
 		return
 	}
 
-	logs, err := swarm_service.Logs(service)
+	logs, err := swarm_service.Logs(service, 10)
 	if err != nil {
 		sl.errorChan <- err
 		return

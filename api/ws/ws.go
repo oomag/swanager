@@ -68,7 +68,7 @@ func wsHandler(c *gin.Context) {
 	}
 
 	for {
-		t, msg, err := conn.ReadMessage()
+		msgType, msg, err := conn.ReadMessage()
 		if err != nil {
 			log().Debugf("ws Error: %s", err.Error())
 			if context.State == stateWorking {
@@ -77,7 +77,7 @@ func wsHandler(c *gin.Context) {
 			break
 		}
 
-		log().Debugf("[%s] WS message type=%d %s", context.State, t, msg)
+		log().Debugf("[%s] WS message: [%d] %s", context.State, msgType, msg)
 
 		switch context.State {
 		case stateUnauthenticated:
@@ -165,7 +165,8 @@ func removeClient(c *clientConnection) {
 	}
 }
 
-func sendNotification(userID string, data interface{}) {
+// Send - sends data to connected client
+func Send(userID string, data interface{}) {
 	if clientConnections, ok := clients[userID]; ok {
 		for _, connection := range clientConnections {
 			connection.Incoming <- data
@@ -173,7 +174,8 @@ func sendNotification(userID string, data interface{}) {
 	}
 }
 
-func isUserConnected(userID string) bool {
+// IsUserConnected returns true is user with UserID is connected
+func IsUserConnected(userID string) bool {
 	_, connected := clients[userID]
 	return connected
 }

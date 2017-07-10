@@ -46,17 +46,16 @@ func main() {
 	}
 
 	initLogger()
+	defer logFile.Close()
 
 	// TODO: current there no way to gracefully stop net/http server,
 	// this feature was added in go 1.8, waiting for release
 	go api.Start()
 
 	events.Start()
+	defer events.Stop()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
-
-	logFile.Close()
-	events.Stop()
 }
