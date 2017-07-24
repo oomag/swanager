@@ -73,6 +73,9 @@ func (vr *VampRouter) Update(services []entities.Service, nodes []entities.Node)
 
 func (vr *VampRouter) parseService(service entities.Service) {
 	for _, endpoint := range service.FrontendEndpoints {
+		if endpoint.Disabled {
+			continue
+		}
 		vr.parseEndpoint(service, endpoint)
 	}
 }
