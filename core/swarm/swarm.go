@@ -12,7 +12,8 @@ import (
 	swarm_service "github.com/dokkur/swanager/core/swarm/service"
 )
 
-const serviceStatusNotExists = "not_exists"
+// ServiceStatusNotExists - string represents service absense
+const ServiceStatusNotExists = "not_exists"
 
 // StartApplication starts a whole application
 func StartApplication(app *entities.Application) error {
@@ -91,7 +92,7 @@ func ServiceExists(service *entities.Service) bool {
 
 	// if service is not running, just return
 	if len(service.Status) == 1 &&
-		service.Status[0].Status == serviceStatusNotExists {
+		service.Status[0].Status == ServiceStatusNotExists {
 		return false
 	}
 	return true
@@ -101,7 +102,9 @@ func ServiceExists(service *entities.Service) bool {
 func GetServiceStatuses(service *entities.Service) {
 	states, err := swarm_service.Status(service)
 	if err != nil {
-		service.AddServiceStatus(entities.ServiceStatusStruct{Status: serviceStatusNotExists})
+		service.AddServiceStatus(entities.ServiceStatusStruct{
+			Status: ServiceStatusNotExists,
+		})
 		return
 	}
 

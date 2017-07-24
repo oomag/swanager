@@ -26,9 +26,13 @@ var (
 
 	// RequestTimeout in minutes
 	RequestTimeout int
+
+	// VampRouterURL vamp router api url
+	VampRouterURL string
 )
 
-func init() {
+// Init - loads config
+func Init() {
 	loadConfigFile()
 
 	flag.StringVar(&Port, "p", "4945", "Api port")
@@ -39,6 +43,7 @@ func init() {
 	flag.StringVar(&MountPathPrefix, "share", "/data", "Mount point base path (default: /data)")
 	flag.StringVar(&LocalSecretKey, "lsk", "", "Secret key to authenticate local services (default: none, won't be authenticated)")
 	flag.IntVar(&RequestTimeout, "to", 5, "Request timeout")
+	flag.StringVar(&VampRouterURL, "vamp", "", "Vamp Router url, not used if empty.")
 
 	flag.Parse()
 
@@ -48,6 +53,7 @@ func init() {
 	DatabaseName = getEnvValue("SWANAGER_DB_NAME", DatabaseName)
 	MountPathPrefix = getEnvValue("SWANAGER_PATH_PREFIX", MountPathPrefix)
 	LocalSecretKey = getEnvValue("SWANAGER_LOCAL_SECRET_KEY", LocalSecretKey)
+	VampRouterURL = getEnvValue("SWANAGER_VAMP_ROUTER_URL", VampRouterURL)
 }
 
 func getEnvValue(varName string, currentValue string) string {

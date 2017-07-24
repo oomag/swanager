@@ -45,4 +45,5 @@ func (sd ServiceDelete) Process() {
 	}
 
 	sd.responseChan <- *service
+	RunAsync(FrontendUpdate{})
 }

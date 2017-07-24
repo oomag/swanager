@@ -33,7 +33,12 @@ func NewServiceListCommand(command ServiceList) (ServiceList, chan []entities.Se
 
 // Process executes command
 func (c ServiceList) Process() {
-	searchOptions := gin.H{"user_id": c.User.ID}
+	searchOptions := make(gin.H)
+
+	if c.User != nil {
+		searchOptions["user_id"] = c.User.ID
+	}
+
 	if c.ApplicationID != "" {
 		searchOptions["application_id"] = c.ApplicationID
 	}

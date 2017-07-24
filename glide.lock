@@ -1,6 +1,8 @@
-hash: 56cf74f23b8f0c8a85c46ec8a5c949f2d58f84f8b758b725f8b120a6581480e6
-updated: 2017-05-23T09:42:04.605301838+03:00
+hash: a258c67dc1d17ca51d539f4be5cce976d7862027287649160cd481acd97b16c5
+updated: 2017-07-24T19:44:17.59796771+03:00
 imports:
+- name: github.com/asaskevich/govalidator
+  version: 4918b99a7cb949bb295f3c7bbaf24b577d806e35
 - name: github.com/davecgh/go-spew
   version: 346938d642f2ec3594ed81d874461961cd0faa76
   subpackages:
@@ -43,8 +45,10 @@ imports:
   version: 0dadbb0345b35ec7ef35e228dabb8de89a65bf52
 - name: github.com/docker/libtrust
   version: aabc10ec26b754e797f9028f4589c5b7bd90dc20
+- name: github.com/gin-contrib/sse
+  version: 22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae
 - name: github.com/gin-gonic/gin
-  version: e2212d40c62a98b388a5eb48ecbdcf88534688ba
+  version: d459835d2b077e44f7c9b453505ee29881d5d12d
   subpackages:
   - binding
   - render
@@ -53,11 +57,16 @@ imports:
   subpackages:
   - proto
 - name: github.com/gorilla/websocket
-  version: 3ab3a8b8831546bd18fd182c20687ca853b2bb13
+  version: ea4d1f681babbce9545c9c5f3d5194a789c89f5b
 - name: github.com/joho/godotenv
   version: 726cc8b906e3d31c70a9671c90a13716a8d3f50d
-- name: github.com/manucorporat/sse
-  version: ee05b128a739a0fb76c7ebd3ae4810c1de808d6d
+  subpackages:
+  - autoload
+- name: github.com/magneticio/vamp-router
+  version: 84bb95fbbe4c7c089e4b8d32b205d4bd63e36543
+  subpackages:
+  - haproxy
+  - tools
 - name: github.com/mattn/go-isatty
   version: fc9e8d8ef48496124e79ae0df75490096eccf6fe
 - name: github.com/Microsoft/go-winio
@@ -68,8 +77,14 @@ imports:
   version: ff09b135c25aae272398c51a07235b90a75aa4f0
 - name: github.com/rogpeppe/fastuuid
   version: 6724a57986aff9bff1a1770e9347036def7c89f6
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+- name: github.com/ugorji/go
+  version: 5efa3251c7f7d05e5d9704a69a984ec9f1386a40
+  subpackages:
+  - codec
 - name: golang.org/x/net
   version: f315505cf3349909cdf013ea56690da34e96a451
   subpackages:

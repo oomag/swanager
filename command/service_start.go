@@ -50,4 +50,6 @@ func (ss ServiceStart) Process() {
 	}
 
 	job.SetState(entities.JobStateSuccess, ss.Service)
+
+	RunAsync(FrontendUpdate{})
 }

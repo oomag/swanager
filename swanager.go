@@ -14,6 +14,7 @@ import (
 	"github.com/dokkur/swanager/config"
 	"github.com/dokkur/swanager/core"
 	"github.com/dokkur/swanager/events"
+	"github.com/dokkur/swanager/frontend"
 )
 
 var logFile *os.File
@@ -45,12 +46,16 @@ func main() {
 		fmt.Printf("Swanager build version %s, build time %s\n\n", core.Version, core.BuildTime)
 	}
 
+	config.Init()
+
 	initLogger()
 	defer logFile.Close()
 
 	// TODO: current there no way to gracefully stop net/http server,
 	// this feature was added in go 1.8, waiting for release
 	go api.Start()
+
+	frontend.Init()
 
 	events.Start()
 	defer events.Stop()

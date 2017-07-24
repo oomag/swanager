@@ -11,6 +11,7 @@ import (
 	"github.com/dokkur/swanager/core/entities"
 	"github.com/dokkur/swanager/core/swarm"
 	swarm_service "github.com/dokkur/swanager/core/swarm/service"
+	"github.com/dokkur/swanager/frontend"
 	"github.com/gin-gonic/gin"
 )
 
@@ -93,6 +94,7 @@ func update(c *gin.Context) {
 	service.Save()
 
 	swarm.UpdateService(service)
+	go frontend.Update()
 
 	serviceStatus, err := swarm_service.Status(service)
 	if err != nil {
@@ -134,6 +136,7 @@ func create(c *gin.Context) {
 		return
 	}
 
+	go frontend.Update()
 	c.JSON(http.StatusCreated, gin.H{"service": service})
 }
 

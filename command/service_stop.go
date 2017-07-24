@@ -48,4 +48,5 @@ func (ss ServiceStop) Process() {
 		return
 	}
 	job.SetState(entities.JobStateSuccess, ss.Service)
+	RunAsync(FrontendUpdate{})
 }
